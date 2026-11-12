@@ -1,0 +1,22 @@
+const p = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
+export const I = {
+  panorama: <svg viewBox="0 0 24 24" {...p}><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4" /><path d="M12 3v3M21 12h-3M12 21v-3M3 12h3" /></svg>,
+  previsao: <svg viewBox="0 0 24 24" {...p}><path d="M3 17l5-5 4 3 8-8" /><path d="M14 7h6v6" /></svg>,
+  simulador: <svg viewBox="0 0 24 24" {...p}><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0" /><circle cx="16" cy="6" r="2" /><circle cx="10" cy="12" r="2" /><circle cx="18" cy="18" r="2" /></svg>,
+  fluxos: <svg viewBox="0 0 24 24" {...p}><circle cx="5" cy="18" r="2" /><circle cx="19" cy="6" r="2" /><path d="M7 17c6-1 9-5 11-9" /><circle cx="5" cy="6" r="2" /><path d="M7 7c4 1 6 4 7 8" /></svg>,
+  planejamento: <svg viewBox="0 0 24 24" {...p}><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>,
+  hospitais: <svg viewBox="0 0 24 24" {...p}><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M12 7v6M9 10h6M9 21v-4h6v4" /></svg>,
+  municipios: <svg viewBox="0 0 24 24" {...p}><path d="M9 3L3 6v15l6-3 6 3 6-3V3l-6 3-6-3z" /><path d="M9 3v15M15 6v15" /></svg>,
+  metodologia: <svg viewBox="0 0 24 24" {...p}><path d="M9 3h6M10 3v6l-5 9a2 2 0 002 3h10a2 2 0 002-3l-5-9V3" /><path d="M7 15h10" /></svg>,
+  filtro: <svg viewBox="0 0 24 24" {...p}><path d="M4 6h16M7 12h10M10 18h4" /></svg>,
+  seta: <svg viewBox="0 0 24 24" {...p}><path d="M15 6l-6 6 6 6" /></svg>,
+  busca: <svg viewBox="0 0 24 24" {...p}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>,
+  sol: <svg viewBox="0 0 24 24" {...p}><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>,
+  lua: <svg viewBox="0 0 24 24" {...p}><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" /></svg>,
+  play: <svg viewBox="0 0 24 24" {...p}><path d="M7 4l13 8-13 8V4z" fill="currentColor" /></svg>,
+  pause: <svg viewBox="0 0 24 24" {...p}><path d="M7 4v16M17 4v16" strokeWidth={3} /></svg>,
+  cubo: <svg viewBox="0 0 24 24" {...p}><path d="M12 2l9 5v10l-9 5-9-5V7l9-5z" /><path d="M12 22V12M21 7l-9 5-9-5" /></svg>,
+  alerta: <svg viewBox="0 0 24 24" {...p}><path d="M12 3l10 18H2L12 3z" /><path d="M12 10v5M12 18h0" /></svg>,
+  check: <svg viewBox="0 0 24 24" {...p}><path d="M5 12l5 5 9-10" /></svg>,
+  x: <svg viewBox="0 0 24 24" {...p}><path d="M6 6l12 12M18 6L6 18" /></svg>,
+};
