@@ -1,3 +1,4 @@
+import { tx } from '../i18n';
 import type { ReactNode } from 'react';
 import { corGrupo, type Nivel, rotuloNivel } from '../lib/cores';
 import { type Escopo, useStore } from '../store';
@@ -6,7 +7,7 @@ export function SeletorGrupo({ compacto = false }: { compacto?: boolean }) {
   const { nucleo, grupo, set } = useStore();
   if (!nucleo) return null;
   return (
-    <div className="seg" role="tablist" aria-label="Tipo de leito">
+    <div className="seg" role="tablist" aria-label={tx("Tipo de leito")}>
       {nucleo.grupos.map((g, i) => (
         <button key={g.id} className={i === grupo ? 'on' : ''} onClick={() => set({ grupo: i, sim: null })} title={g.nome}>
           <i className="swatch" style={{ background: corGrupo(i) }} />
@@ -22,19 +23,19 @@ export function SeletorEscopo() {
   if (!nucleo) return null;
   const v = escopo.tipo === 'estado' ? 'estado' : `${escopo.tipo}:${escopo.id}`;
   return (
-    <select value={v} aria-label="Recorte territorial" onChange={(e) => {
+    <select value={v} aria-label={tx("Recorte territorial")} onChange={(e) => {
       const x = e.target.value;
       let es: Escopo = { tipo: 'estado' };
       if (x.startsWith('drs:')) es = { tipo: 'drs', id: x.slice(4) };
       if (x.startsWith('regiao:')) es = { tipo: 'regiao', id: Number(x.slice(7)) };
       set({ escopo: es });
     }}>
-      <option value="estado">Estado de São Paulo</option>
-      <optgroup label="Departamentos Regionais de Saúde">
-        {nucleo.drs.map((d) => <option key={d.id} value={`drs:${d.id}`}>DRS {d.id} · {d.nome}</option>)}
+      <option value="estado">{tx("Estado de São Paulo")}</option>
+      <optgroup label={tx("Departamentos Regionais de Saúde")}>
+        {nucleo.drs.map((d) => <option key={d.id} value={`drs:${d.id}`}>{tx("DRS")} {d.id} · {d.nome}</option>)}
       </optgroup>
       {nucleo.drs.map((d) => (
-        <optgroup key={d.id} label={`Regiões · DRS ${d.nome}`}>
+        <optgroup key={d.id} label={tx("Regiões · DRS {0}", d.nome)}>
           {nucleo.regioes.filter((r) => r.drs === d.id).map((r) => <option key={r.id} value={`regiao:${r.id}`}>{r.nome}</option>)}
         </optgroup>
       ))}

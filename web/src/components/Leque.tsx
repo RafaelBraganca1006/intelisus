@@ -1,3 +1,4 @@
+import { tx } from '../i18n';
 import type { EChartsOption } from 'echarts';
 import { useMemo } from 'react';
 import { Z50, Z80, Z95 } from '../engine/motor';
@@ -35,24 +36,24 @@ export function Leque({ d, altura = 340, taxa = false, compacto = false }: { d: 
     };
     if (d.dp) {
       const m = d.media, s = d.dp;
-      faixa((i) => Math.max(0, m[i] - Z95 * s[i]), (i) => m[i] + Z95 * s[i], 0.12, 'IC 95%');
-      faixa((i) => Math.max(0, m[i] - Z80 * s[i]), (i) => m[i] + Z80 * s[i], 0.16, 'IC 80%');
-      faixa((i) => Math.max(0, m[i] - Z50 * s[i]), (i) => m[i] + Z50 * s[i], 0.22, 'IC 50%');
+      faixa((i) => Math.max(0, m[i] - Z95 * s[i]), (i) => m[i] + Z95 * s[i], 0.12, tx("IC 95%"));
+      faixa((i) => Math.max(0, m[i] - Z80 * s[i]), (i) => m[i] + Z80 * s[i], 0.16, tx("IC 80%"));
+      faixa((i) => Math.max(0, m[i] - Z50 * s[i]), (i) => m[i] + Z50 * s[i], 0.22, tx("IC 50%"));
     } else if (d.q) {
       faixa((i) => d.q!.p10[i], (i) => d.q!.p90[i], 0.2, 'P10–P90');
     }
-    if (d.cenario) faixa((i) => d.cenario!.p10[i], (i) => d.cenario!.p90[i], 0.18, 'Cenário P10–P90', laranja, 'cen');
+    if (d.cenario) faixa((i) => d.cenario!.p10[i], (i) => d.cenario!.p90[i], 0.18, tx("Cenário P10–P90"), laranja, 'cen');
     const linhas: any[] = [
       { type: 'line', name: 'Observado', data: obs, symbol: 'none', lineStyle: { width: 1.6, color: b.t1 }, itemStyle: { color: b.t1 }, z: 5 },
     ];
     if (par.length) linhas.push({ type: 'line', name: 'Parcial corrigido (nowcast)', data: par, symbol: 'none', lineStyle: { width: 1.6, color: b.t1, type: [2, 3] }, itemStyle: { color: b.t1 }, z: 5 });
     if (bru.length) linhas.push({ type: 'line', name: 'Faturado até agora', data: bru, symbol: 'none', lineStyle: { width: 1, color: b.t3, type: [1, 3] }, itemStyle: { color: b.t3 }, z: 4 });
-    linhas.push({ type: 'line', name: d.cenario ? 'Base (mediana)' : 'Gêmeo (esperado)', data: P.map((t, i) => [t, T(d.q ? d.q.p50[i] : d.media[i])]), symbol: 'none',
+    linhas.push({ type: 'line', name: d.cenario ? tx("Base (mediana)") : tx("Gêmeo (esperado)"), data: P.map((t, i) => [t, T(d.q ? d.q.p50[i] : d.media[i])]), symbol: 'none',
       lineStyle: { width: 2, color: acc }, itemStyle: { color: acc }, z: 6 });
     if (d.cenario) linhas.push({ type: 'line', name: d.cenario.nome, data: P.map((t, i) => [t, T(d.cenario!.p50[i])]), symbol: 'none', lineStyle: { width: 2, color: laranja }, itemStyle: { color: laranja }, z: 7 });
     const mk: any[] = [];
     if (d.capacidade > 0) {
-      mk.push({ yAxis: taxa ? 100 : d.capacidade, lineStyle: { color: crit, type: 'solid', width: 1.2 }, label: { show: !compacto, formatter: taxa ? '100% · capacidade' : `Capacidade ${n0(d.capacidade)}`, color: b.t2, position: 'insideEndTop', fontSize: 11 } });
+      mk.push({ yAxis: taxa ? 100 : d.capacidade, lineStyle: { color: crit, type: 'solid', width: 1.2 }, label: { show: !compacto, formatter: taxa ? tx("100% · capacidade") : tx("Capacidade {0}", n0(d.capacidade)), color: b.t2, position: 'insideEndTop', fontSize: 11 } });
       mk.push({ yAxis: taxa ? 85 : 0.85 * d.capacidade, lineStyle: { color: b.t3, type: [4, 4], width: 1 }, label: { show: !compacto, formatter: 'meta 85%', color: b.t3, position: 'insideEndTop', fontSize: 11 } });
     }
     const vx: any[] = [];
@@ -65,7 +66,7 @@ export function Leque({ d, altura = 340, taxa = false, compacto = false }: { d: 
       textStyle: b.textStyle,
       grid: compacto ? { left: 44, right: 10, top: 10, bottom: 24 } : { left: 52, right: 18, top: 34, bottom: 56 },
       legend: { show: !compacto, top: 0, left: 0, itemWidth: 14, itemHeight: 3, textStyle: { color: b.t2, fontSize: 11.5 }, icon: 'rect',
-        data: linhas.map((l) => l.name).concat(d.dp ? ['IC 50%', 'IC 80%', 'IC 95%'] : d.q ? ['P10–P90'] : []).concat(d.cenario ? ['Cenário P10–P90'] : []) },
+        data: linhas.map((l) => l.name).concat(d.dp ? [tx("IC 50%"), tx("IC 80%"), tx("IC 95%")] : d.q ? ['P10–P90'] : []).concat(d.cenario ? [tx("Cenário P10–P90")] : []) },
       tooltip: {
         ...b.tooltip, trigger: 'axis', axisPointer: { type: 'line', lineStyle: { color: b.t3 } },
         formatter: (ps: any) => {
@@ -75,15 +76,15 @@ export function Leque({ d, altura = 340, taxa = false, compacto = false }: { d: 
           const f = (v: number) => (taxa ? `${v.toFixed(1)}%` : n0(v));
           let s = `<b>${dataBR(new Date(t))}</b>`;
           for (const p of arr) if (!p.seriesName.endsWith('-lo') && p.value[1] != null && !p.seriesName.startsWith('IC') && !p.seriesName.includes('P10'))
-            s += `<div class="row"><span>${p.marker}${p.seriesName}</span><span>${f(p.value[1])}</span></div>`;
+            s += tx("<div class=\"row\"><span>{0}{1}</span><span>{2}</span></div>", p.marker, p.seriesName, f(p.value[1]));
           if (i != null && d.dp) {
             const lo = Math.max(0, d.media[i] - Z80 * d.dp[i]) * k, hi = (d.media[i] + Z80 * d.dp[i]) * k;
-            s += `<div class="row"><span>IC 80%</span><span>${f(lo)} – ${f(hi)}</span></div>`;
-            if (d.capacidade) s += `<div class="row"><span>Ocupação esperada</span><span>${pct(d.media[i] / d.capacidade, 1)}</span></div>`;
+            s += tx("<div class=\"row\"><span>IC 80%</span><span>{0} – {1}</span></div>", f(lo), f(hi));
+            if (d.capacidade) s += tx("<div class=\"row\"><span>Ocupação esperada</span><span>{0}</span></div>", pct(d.media[i] / d.capacidade, 1));
           }
-          if (i != null && d.q) s += `<div class="row"><span>Base P10–P90</span><span>${f(d.q.p10[i] * k)} – ${f(d.q.p90[i] * k)}</span></div>`;
-          if (i != null && d.cenario) s += `<div class="row"><span>Cenário P10–P90</span><span>${f(d.cenario.p10[i] * k)} – ${f(d.cenario.p90[i] * k)}</span></div>`;
-          return `<div class="tooltip" style="position:static;box-shadow:none;border:0;padding:0">${s}</div>`;
+          if (i != null && d.q) s += tx("<div class=\"row\"><span>Base P10–P90</span><span>{0} – {1}</span></div>", f(d.q.p10[i] * k), f(d.q.p90[i] * k));
+          if (i != null && d.cenario) s += tx("<div class=\"row\"><span>Cenário P10–P90</span><span>{0} – {1}</span></div>", f(d.cenario.p10[i] * k), f(d.cenario.p90[i] * k));
+          return tx("<div class=\"tooltip\" style=\"position:static;box-shadow:none;border:0;padding:0\">{0}</div>", s);
         },
       },
       xAxis: { type: 'time', ...b.eixoX },

@@ -1,3 +1,4 @@
+import { tx } from '../i18n';
 import type { EChartsOption } from 'echarts';
 import { useMemo, useState } from 'react';
 import { Controle, Kpi, SeletorGrupo, Status } from '../components/Controles';
@@ -80,28 +81,28 @@ export function Planejamento() {
   return (
     <div className="grid fade-in" style={{ gridTemplateColumns: '300px minmax(0, 1fr)', alignItems: 'start' }}>
       <div className="card" style={{ position: 'sticky', top: 0 }}>
-        <h3>Premissas</h3>
-        <p className="hint">Taxas atuais de uso de leito por idade e município de residência, aplicadas à Projeção IBGE 2024.</p>
-        <Controle rotulo="Ano do horizonte" valor={ano}><input type="range" min={anoRef} max={2045} value={ano} onChange={(e) => setAno(+e.target.value)} /></Controle>
-        <Controle rotulo="Meta de ocupação" valor={`${meta}%`} desc="Leitos = censo ÷ meta. 85% é a referência usual para absorver flutuações."><input type="range" min={70} max={95} value={meta} onChange={(e) => setMeta(+e.target.value)} /></Controle>
-        <Controle rotulo="Dimensionar para" valor={pico ? 'pico sazonal' : 'média anual'} desc="Pico = semana P90 dos últimos 12 meses (inverno).">
-          <div className="seg"><button className={pico ? 'on' : ''} onClick={() => setPico(true)}>Pico (P90)</button><button className={!pico ? 'on' : ''} onClick={() => setPico(false)}>Média</button></div>
+        <h3>{tx("Premissas")}</h3>
+        <p className="hint">{tx("Taxas atuais de uso de leito por idade e município de residência, aplicadas à Projeção IBGE 2024.")}</p>
+        <Controle rotulo={tx("Ano do horizonte")} valor={ano}><input type="range" min={anoRef} max={2045} value={ano} onChange={(e) => setAno(+e.target.value)} /></Controle>
+        <Controle rotulo={tx("Meta de ocupação")} valor={`${meta}%`} desc={tx("Leitos = censo ÷ meta. 85% é a referência usual para absorver flutuações.")}><input type="range" min={70} max={95} value={meta} onChange={(e) => setMeta(+e.target.value)} /></Controle>
+        <Controle rotulo={tx("Dimensionar para")} valor={pico ? tx("pico sazonal") : tx("média anual")} desc={tx("Pico = semana P90 dos últimos 12 meses (inverno).")}>
+          <div className="seg"><button className={pico ? 'on' : ''} onClick={() => setPico(true)}>{tx("Pico (P90)")}</button><button className={!pico ? 'on' : ''} onClick={() => setPico(false)}>{tx("Média")}</button></div>
         </Controle>
-        <Controle rotulo="APS resolutiva (ICSAP evitadas)" valor={`−${icsap}%`} desc="Aplica-se à fração de leitos-dia por ICSAP de cada região."><input type="range" min={0} max={50} step={5} value={icsap} onChange={(e) => setIcsap(+e.target.value)} /></Controle>
-        <Controle rotulo="Redução da permanência" valor={`−${perm}%`}><input type="range" min={0} max={25} value={perm} onChange={(e) => setPerm(+e.target.value)} /></Controle>
+        <Controle rotulo={tx("APS resolutiva (ICSAP evitadas)")} valor={`−${icsap}%`} desc={tx("Aplica-se à fração de leitos-dia por ICSAP de cada região.")}><input type="range" min={0} max={50} step={5} value={icsap} onChange={(e) => setIcsap(+e.target.value)} /></Controle>
+        <Controle rotulo={tx("Redução da permanência")} valor={`−${perm}%`}><input type="range" min={0} max={25} value={perm} onChange={(e) => setPerm(+e.target.value)} /></Controle>
       </div>
       <div className="grid">
         <SeletorGrupo />
         <div className="kpis">
-          <Kpi lbl={`Leitos necessários em ${ano}`} val={n0(necT)} det={<>{nomeEscopo(n!, escopo)} · {n!.grupos[g].nome}</>} />
-          <Kpi lbl="Leitos SUS hoje" val={n0(capT)} det={<>necessários hoje: {n0(hojeT)} ({pct(hojeT / capT - 1 >= 0 ? hojeT / capT - 1 : hojeT / capT - 1)})</>} />
-          <Kpi lbl="Variação necessária" val={`${sinal(((necT - capT) / capT) * 100)}%`} un="" extra={<Status nivel={necT > capT * 1.05 ? 'serious' : necT > capT ? 'warning' : 'good'} texto={necT > capT ? 'déficit' : 'suficiente'} />}
-            det={<>{sinal(necT - capT)} leitos no saldo do recorte</>} />
-          <Kpi lbl="Soma dos déficits regionais" val={n0(deficit)} det={<>{sel.filter((x) => x.gap > 0.5).length} de {sel.filter((x) => x.cap > 0).length} regiões precisam de leitos (sem remanejar)</>} />
+          <Kpi lbl={tx("Leitos necessários em {0}", ano)} val={n0(necT)} det={<>{nomeEscopo(n!, escopo)} · {n!.grupos[g].nome}</>} />
+          <Kpi lbl={tx("Leitos SUS hoje")} val={n0(capT)} det={<>{tx("necessários hoje:")} {n0(hojeT)} ({pct(hojeT / capT - 1 >= 0 ? hojeT / capT - 1 : hojeT / capT - 1)})</>} />
+          <Kpi lbl={tx("Variação necessária")} val={`${sinal(((necT - capT) / capT) * 100)}%`} un="" extra={<Status nivel={necT > capT * 1.05 ? 'serious' : necT > capT ? 'warning' : 'good'} texto={necT > capT ? tx("déficit") : 'suficiente'} />}
+            det={<>{sinal(necT - capT)} {tx("leitos no saldo do recorte")}</>} />
+          <Kpi lbl={tx("Soma dos déficits regionais")} val={n0(deficit)} det={<>{sel.filter((x) => x.gap > 0.5).length} {tx("de")} {sel.filter((x) => x.cap > 0).length} {tx("regiões precisam de leitos (sem remanejar)")}</>} />
         </div>
         <div className="card">
-          <h3>Necessidade vs. capacidade atual, por tipo de leito · {nomeEscopo(n!, escopo)}</h3>
-          <p className="hint">Percentual de leitos a mais (ou a menos) em relação ao que existe hoje. O envelhecimento pressiona clínico e UTI adulto; a queda da natalidade alivia obstetrícia e pediatria.</p>
+          <h3>{tx("Necessidade vs. capacidade atual, por tipo de leito ·")} {nomeEscopo(n!, escopo)}</h3>
+          <p className="hint">{tx("Percentual de leitos a mais (ou a menos) em relação ao que existe hoje. O envelhecimento pressiona clínico e UTI adulto; a queda da natalidade alivia obstetrícia e pediatria.")}</p>
           {opAnos && <Grafico opcao={opAnos} altura={320} />}
         </div>
         <div className="grid" style={{ gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)' }}>
@@ -109,18 +110,18 @@ export function Planejamento() {
             <Mapa camada="regioes" cores={cores} altura={440} selecionado={escopo.tipo === 'regiao' ? escopo.id : null}
               onClick={(t, id) => t === 'area' && set({ escopo: { tipo: 'regiao', id } })}
               tooltip={(_, id) => { const x = porRegiao.find((y) => y.r.id === id)!; return <><b>{x.r.nome}</b>
-                <div className="row"><span>Leitos hoje</span><span>{n0(x.cap)}</span></div>
-                <div className="row"><span>Necessários {ano}</span><span>{n0(x.nec)}</span></div>
-                <div className="row"><span>Saldo</span><span>{sinal(-x.gap)}</span></div></>; }}>
+                <div className="row"><span>{tx("Leitos hoje")}</span><span>{n0(x.cap)}</span></div>
+                <div className="row"><span>{tx("Necessários")} {ano}</span><span>{n0(x.nec)}</span></div>
+                <div className="row"><span>{tx("Saldo")}</span><span>{sinal(-x.gap)}</span></div></>; }}>
               <div className="map-overlay" style={{ left: 12, bottom: 12 }}>
-                <LegendaRampa titulo={`Déficit (vermelho) / sobra (azul) em ${ano}`} gradiente={`linear-gradient(90deg, ${[-1, -0.5, 0, 0.5, 1].map((x) => corDiv(x)).join(',')})`} ticks={['−50%', '', '0', '', '+50%']} />
+                <LegendaRampa titulo={tx("Déficit (vermelho) / sobra (azul) em {0}", ano)} gradiente={`linear-gradient(90deg, ${[-1, -0.5, 0, 0.5, 1].map((x) => corDiv(x)).join(',')})`} ticks={['−50%', '', '0', '', '+50%']} />
               </div>
             </Mapa>
           </div>
           <div className="card" style={{ maxHeight: 442, display: 'flex', flexDirection: 'column' }}>
-            <h3>Regiões por déficit em {ano}</h3>
+            <h3>{tx("Regiões por déficit em")} {ano}</h3>
             <div className="scroll" style={{ flex: 1, margin: '6px -8px 0' }}>
-              <table className="tbl"><thead><tr><th>Região</th><th className="r">Hoje</th><th className="r">Necessários</th><th className="r">Saldo</th></tr></thead>
+              <table className="tbl"><thead><tr><th>{tx("Região")}</th><th className="r">{tx("Hoje")}</th><th className="r">{tx("Necessários")}</th><th className="r">{tx("Saldo")}</th></tr></thead>
                 <tbody>{porRegiao.filter((x) => x.cap > 0 || x.nec > 1).slice().sort((a, b) => b.gap - a.gap).map((x) => (
                   <tr key={x.r.id} onClick={() => set({ escopo: { tipo: 'regiao', id: x.r.id } })} className={escopo.tipo === 'regiao' && escopo.id === x.r.id ? 'sel' : ''}>
                     <td>{x.r.nome}<div className="muted" style={{ fontSize: 11 }}>{n!.drs.find((d) => d.id === x.r.drs)?.nome}</div></td>

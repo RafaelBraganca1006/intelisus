@@ -1,3 +1,4 @@
+import { tx } from '../i18n';
 import type { EChartsOption } from 'echarts';
 import { useMemo, useState } from 'react';
 import { Controle, Kpi } from '../components/Controles';
@@ -87,7 +88,7 @@ export function Fluxos() {
     const nomes = new Set(links.flatMap((l) => [l.source, l.target]));
     const acc = lerVar('--accent');
     return {
-      animation: false, textStyle: b.textStyle, tooltip: { ...b.tooltip, formatter: (p: any) => p.dataType === 'edge' ? `${p.data.source.replace(' ·', '')} → ${p.data.target.replace('→ ', '')}<br/><b>${n0(p.data.value)}</b> internações/ano` : `${p.name.replace(' ·', '').replace('→ ', '')}: ${n0(p.value)}` },
+      animation: false, textStyle: b.textStyle, tooltip: { ...b.tooltip, formatter: (p: any) => p.dataType === 'edge' ? tx("{0} → {1}<br/><b>{2}</b> internações/ano", p.data.source.replace(' ·', ''), p.data.target.replace('→ ', ''), n0(p.data.value)) : `${p.name.replace(' ·', '').replace('→ ', '')}: ${n0(p.value)}` },
       series: [{ type: 'sankey', left: 8, right: 8, top: 8, bottom: 8, nodeWidth: 10, nodeGap: 7, draggable: false, layoutIterations: 64,
         data: [...nomes].map((nm) => ({ name: nm, itemStyle: { color: nm.startsWith('→') ? lerVar('--s3') : acc, borderWidth: 0 } })),
         links, label: { color: b.t2, fontSize: 10.5 }, lineStyle: { color: 'gradient', opacity: 0.28, curveness: 0.5 },
@@ -107,15 +108,15 @@ export function Fluxos() {
     <div className="grid fade-in">
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         <div className="seg">
-          <button className={gSel === G ? 'on' : ''} onClick={() => setG(G)}>Todos os leitos</button>
+          <button className={gSel === G ? 'on' : ''} onClick={() => setG(G)}>{tx("Todos os leitos")}</button>
           {n!.grupos.map((g, i) => <button key={g.id} className={gSel === i ? 'on' : ''} onClick={() => setG(i)}><i className="swatch" style={{ background: corGrupo(i) }} />{g.nome}</button>)}
         </div>
       </div>
       {tot && <div className="kpis">
-        <Kpi lbl="Internações em 12 meses" val={n0(tot.t)} det="residentes em SP, SIH/SUS" />
-        <Kpi lbl="Fora do município" val={pct(tot.foraMun)} det="internados em outro município (todos os leitos)" />
-        <Kpi lbl="Fora da região de saúde" val={pct(tot.foraReg)} det="evasão entre as 63 regiões" />
-        <Kpi lbl="Fora do DRS" val={pct(tot.foraDrs)} det="atravessam o departamento regional" />
+        <Kpi lbl={tx("Internações em 12 meses")} val={n0(tot.t)} det={tx("residentes em SP, SIH/SUS")} />
+        <Kpi lbl={tx("Fora do município")} val={pct(tot.foraMun)} det={tx("internados em outro município (todos os leitos)")} />
+        <Kpi lbl={tx("Fora da região de saúde")} val={pct(tot.foraReg)} det={tx("evasão entre as 63 regiões")} />
+        <Kpi lbl={tx("Fora do DRS")} val={pct(tot.foraDrs)} det={tx("atravessam o departamento regional")} />
       </div>}
       <div className="grid" style={{ gridTemplateColumns: 'minmax(0, 1.6fr) minmax(300px, 1fr)' }}>
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
@@ -124,23 +125,23 @@ export function Fluxos() {
             tooltip={(_, id) => {
               const m = mun.get(id); if (!m) return null;
               return <><b>{m.nome}</b><div className="muted">{n!.regioes.find((r) => r.id === m.regiao)?.nome}</div>
-                <div className="row"><span>Internações/ano</span><span>{n0(m.n)}</span></div>
-                <div className="row"><span>Fora do município</span><span>{pct(m.fora_mun)}</span></div>
-                <div className="row"><span>Fora da região</span><span>{pct(m.fora_reg)}</span></div></>;
+                <div className="row"><span>{tx("Internações/ano")}</span><span>{n0(m.n)}</span></div>
+                <div className="row"><span>{tx("Fora do município")}</span><span>{pct(m.fora_mun)}</span></div>
+                <div className="row"><span>{tx("Fora da região")}</span><span>{pct(m.fora_reg)}</span></div></>;
             }}>
             <div className="map-overlay legend" style={{ left: 12, top: 12, width: 260 }}>
-              {munSel == null ? <Controle rotulo="Fluxo mínimo exibido" valor={`${n0(minimo)} internações/ano`}>
+              {munSel == null ? <Controle rotulo={tx("Fluxo mínimo exibido")} valor={tx("{0} internações/ano", n0(minimo))}>
                 <input type="range" min={20} max={1500} step={10} value={minimo} onChange={(e) => setMinimo(+e.target.value)} />
               </Controle> : <div style={{ fontSize: 12 }}>
-                <b style={{ color: 'var(--text-1)' }}>{sel?.nome}</b>: <span style={{ color: 'var(--s2)' }}>━ saídas</span> · <span style={{ color: 'var(--s3)' }}>━ chegadas</span>
-                <button className="btn" style={{ marginTop: 6 }} onClick={() => setMunSel(null)}>Limpar seleção</button></div>}
+                <b style={{ color: 'var(--text-1)' }}>{sel?.nome}</b>: <span style={{ color: 'var(--s2)' }}>{tx("━ saídas")}</span> · <span style={{ color: 'var(--s3)' }}>{tx("━ chegadas")}</span>
+                <button className="btn" style={{ marginTop: 6 }} onClick={() => setMunSel(null)}>{tx("Limpar seleção")}</button></div>}
               <div className="seg" style={{ marginTop: 6 }}>
-                <button className={indic === 'fora_mun' ? 'on' : ''} onClick={() => setIndic('fora_mun')}>% fora do município</button>
-                <button className={indic === 'fora_reg' ? 'on' : ''} onClick={() => setIndic('fora_reg')}>% fora da região</button>
+                <button className={indic === 'fora_mun' ? 'on' : ''} onClick={() => setIndic('fora_mun')}>{tx("% fora do município")}</button>
+                <button className={indic === 'fora_reg' ? 'on' : ''} onClick={() => setIndic('fora_reg')}>{tx("% fora da região")}</button>
               </div>
             </div>
             <div className="map-overlay" style={{ left: 12, bottom: 12 }}>
-              <LegendaRampa titulo={indic === 'fora_mun' ? 'Residentes internados fora do município' : 'Residentes internados fora da região'} gradiente={gradienteSeq()} ticks={indic === 'fora_mun' ? ['0%', '50%', '100%'] : ['0%', '30%', '60%+']} />
+              <LegendaRampa titulo={indic === 'fora_mun' ? tx("Residentes internados fora do município") : tx("Residentes internados fora da região")} gradiente={gradienteSeq()} ticks={indic === 'fora_mun' ? ['0%', '50%', '100%'] : ['0%', '30%', '60%+']} />
             </div>
           </Mapa>
         </div>
@@ -148,11 +149,11 @@ export function Fluxos() {
           {sel && ligacoes ? (
             <div className="card fade-in">
               <h3>{sel.nome}</h3>
-              <p className="hint">{n0(sel.n)} internações de residentes/ano · {pct(sel.fora_mun)} fora do município</p>
+              <p className="hint">{n0(sel.n)} {tx("internações de residentes/ano ·")} {pct(sel.fora_mun)} {tx("fora do município")}</p>
               <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 {(['saidas', 'entradas'] as const).map((k) => (
                   <div key={k}>
-                    <div className="nav-sec" style={{ padding: '0 0 6px' }}>{k === 'saidas' ? 'Para onde vão' : 'De onde vêm'}</div>
+                    <div className="nav-sec" style={{ padding: '0 0 6px' }}>{k === 'saidas' ? tx("Para onde vão") : tx("De onde vêm")}</div>
                     {ligacoes[k].map((x) => {
                       const mx = ligacoes[k][0]?.v ?? 1;
                       return <div key={x.m} style={{ marginBottom: 6, fontSize: 12 }}>
@@ -166,21 +167,21 @@ export function Fluxos() {
               </div>
             </div>
           ) : (
-            <div className="callout">Clique num município para ver de onde vêm e para onde vão os seus pacientes. Os arcos se movem no sentido origem → destino e a largura é proporcional ao volume anual.</div>
+            <div className="callout">{tx("Clique num município para ver de onde vêm e para onde vão os seus pacientes. Os arcos se movem no sentido origem → destino e a largura é proporcional ao volume anual.")}</div>
           )}
           <div className="card">
-            <h3>Trocas entre DRS</h3>
-            <p className="hint">Internações/ano que cruzam o departamento regional (≥120). À esquerda, a residência; à direita, onde a pessoa foi internada.</p>
+            <h3>{tx("Trocas entre DRS")}</h3>
+            <p className="hint">{tx("Internações/ano que cruzam o departamento regional (≥120). À esquerda, a residência; à direita, onde a pessoa foi internada.")}</p>
             {opSankey && <Grafico opcao={opSankey} altura={430} />}
           </div>
         </div>
       </div>
       <div className="card">
-        <h3>Autossuficiência e atração das regiões de saúde</h3>
-        <p className="hint">Autossuficiência = % dos residentes internados na própria região. Atração = % dos pacientes da região que vêm de fora. Ordenado da menos para a mais autossuficiente. Clique para selecionar a região no painel.</p>
+        <h3>{tx("Autossuficiência e atração das regiões de saúde")}</h3>
+        <p className="hint">{tx("Autossuficiência = % dos residentes internados na própria região. Atração = % dos pacientes da região que vêm de fora. Ordenado da menos para a mais autossuficiente. Clique para selecionar a região no painel.")}</p>
         <div className="scroll" style={{ maxHeight: 420 }}>
           <table className="tbl">
-            <thead><tr><th>Região</th><th>DRS</th><th>Autossuficiência</th><th>Atração</th><th className="r">Saldo</th><th>Principal destino dos residentes</th></tr></thead>
+            <thead><tr><th>{tx("Região")}</th><th>{tx("DRS")}</th><th>{tx("Autossuficiência")}</th><th>{tx("Atração")}</th><th className="r">{tx("Saldo")}</th><th>{tx("Principal destino dos residentes")}</th></tr></thead>
             <tbody>{regStats.map((x) => (
               <tr key={x.r.id} className={escopo.tipo === 'regiao' && escopo.id === x.r.id ? 'sel' : ''} onClick={() => set({ escopo: { tipo: 'regiao', id: x.r.id } })}>
                 <td style={{ fontWeight: 500 }}>{x.r.nome}</td>

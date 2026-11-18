@@ -1,3 +1,4 @@
+import { tx } from '../i18n';
 import type { EChartsOption } from 'echarts';
 import { useMemo, useState } from 'react';
 import { SeletorGrupo, Status } from '../components/Controles';
@@ -71,7 +72,7 @@ export function Previsao() {
         ...b.tooltip, formatter: (x: any) => {
           const [w, row, v] = x.value; const o = calor.ordem[row];
           const d0 = addDias(ref, w * 7);
-          return `<b>${o.r.nome}</b><br/>semana de ${dataBR(d0)}<br/>${met === 'ocup' ? 'Ocupação esperada' : met === 'p85' ? 'P(ocupação > 85%), maior dia' : 'P(ocupação > 100%), maior dia'}: <b>${pct(v, met === 'ocup' ? 1 : 0)}</b>`;
+          return tx("<b>{0}</b><br/>semana de {1}<br/>{2}: <b>{3}</b>", o.r.nome, dataBR(d0), met === 'ocup' ? tx("Ocupação esperada") : met === 'p85' ? tx("P(ocupação > 85%), maior dia") : tx("P(ocupação > 100%), maior dia"), pct(v, met === 'ocup' ? 1 : 0));
         },
       },
       xAxis: { type: 'category', data: Array.from({ length: semanas }, (_, w) => dataCurta(addDias(ref, w * 7))), ...b.eixoX, position: 'top', splitArea: { show: false } },
@@ -140,25 +141,25 @@ export function Previsao() {
     <div className="grid fade-in">
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
         <SeletorGrupo />
-        <div className="seg"><button className={taxa ? 'on' : ''} onClick={() => setTaxa(true)}>% ocupação</button><button className={!taxa ? 'on' : ''} onClick={() => setTaxa(false)}>pacientes</button></div>
-        {conf !== 'alta' && <Status nivel={conf === 'baixa' ? 'serious' : 'warning'} texto={`confiabilidade ${conf}`} />}
+        <div className="seg"><button className={taxa ? 'on' : ''} onClick={() => setTaxa(true)}>{tx("% ocupação")}</button><button className={!taxa ? 'on' : ''} onClick={() => setTaxa(false)}>{tx("pacientes")}</button></div>
+        {conf !== 'alta' && <Status nivel={conf === 'baixa' ? 'serious' : 'warning'} texto={tx('confiabilidade {0}', tx(conf))} />}
       </div>
       <div className="card">
         <div className="card-head"><div>
-          <h3>Ocupação diária · {nomeEscopo(n!, escopo)} · {n!.grupos[g].nome}</h3>
-          <p className="hint">Linha sólida: censo reconstruído do SIH (completo). Pontilhado: meses ainda em faturamento, corrigidos pela curva de completude. Azul: o gêmeo propaga o estado sincronizado, com intervalos de 50/80/95%.</p>
+          <h3>{tx("Ocupação diária ·")} {nomeEscopo(n!, escopo)} · {n!.grupos[g].nome}</h3>
+          <p className="hint">{tx("Linha sólida: censo reconstruído do SIH (completo). Pontilhado: meses ainda em faturamento, corrigidos pela curva de completude. Azul: o gêmeo propaga o estado sincronizado, com intervalos de 50/80/95%.")}</p>
         </div></div>
         {leque ? <Leque d={leque} altura={380} taxa={taxa} /> : <div className="loading" style={{ height: 380 }}><div className="spinner" /></div>}
       </div>
       <div className="grid" style={{ gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1fr)' }}>
         <div className="card">
           <div className="card-head">
-            <div><h3>Mapa de calor do risco · próximas 16 semanas</h3>
-              <p className="hint">Cada célula é a semana de uma região de saúde (ordem por DRS). Clique numa linha para abrir a região.</p></div>
+            <div><h3>{tx("Mapa de calor do risco · próximas 16 semanas")}</h3>
+              <p className="hint">{tx("Cada célula é a semana de uma região de saúde (ordem por DRS). Clique numa linha para abrir a região.")}</p></div>
             <div className="seg">
               <button className={met === 'p85' ? 'on' : ''} onClick={() => setMet('p85')}>P &gt; 85%</button>
               <button className={met === 'p100' ? 'on' : ''} onClick={() => setMet('p100')}>P &gt; 100%</button>
-              <button className={met === 'ocup' ? 'on' : ''} onClick={() => setMet('ocup')}>ocupação</button>
+              <button className={met === 'ocup' ? 'on' : ''} onClick={() => setMet('ocup')}>{tx("ocupação")}</button>
             </div>
           </div>
           {opCalor && <Grafico opcao={opCalor} altura={Math.max(420, (calor?.ordem.length ?? 60) * 15 + 90)}
@@ -166,10 +167,10 @@ export function Previsao() {
         </div>
         <div className="grid" style={{ alignContent: 'start' }}>
           <div className="card">
-            <h3>Próximas 12 semanas · {nomeEscopo(n!, escopo)}</h3>
-            <p className="hint">Probabilidades do maior dia da semana.</p>
+            <h3>{tx("Próximas 12 semanas ·")} {nomeEscopo(n!, escopo)}</h3>
+            <p className="hint">{tx("Probabilidades do maior dia da semana.")}</p>
             <table className="tbl">
-              <thead><tr><th>Semana de</th><th className="r">Ocupação</th><th className="r">IC 80%</th><th className="r">P&gt;85%</th><th className="r">P&gt;100%</th></tr></thead>
+              <thead><tr><th>{tx("Semana de")}</th><th className="r">{tx("Ocupação")}</th><th className="r">{tx("IC 80%")}</th><th className="r">P&gt;85%</th><th className="r">P&gt;100%</th></tr></thead>
               <tbody>{tabela.map((t) => (
                 <tr key={t.ini.getTime()}>
                   <td>{dataBR(t.ini)}</td>
@@ -179,11 +180,11 @@ export function Previsao() {
                   <td className="r num" style={{ fontWeight: t.p100 > 0.2 ? 700 : 400 }}>{pct(t.p100)}</td>
                 </tr>))}</tbody>
             </table>
-            {tabela[0] && <div style={{ marginTop: 10 }}><Status nivel={nivelOcupacao(tabela[0].m / cap)} texto={`Semana atual: ${pct(tabela[0].m / cap, 1)}`} /></div>}
+            {tabela[0] && <div style={{ marginTop: 10 }}><Status nivel={nivelOcupacao(tabela[0].m / cap)} texto={tx("Semana atual: {0}", pct(tabela[0].m / cap, 1))} /></div>}
           </div>
           <div className="card">
-            <h3>Entradas em leito por dia</h3>
-            <p className="hint">Chegadas previstas (λ) vs observadas. Os meses parciais (corrigidos pela completude) servem para monitorar; não recalibram o nível, porque no backtest operacional isso piorou o erro.</p>
+            <h3>{tx("Entradas em leito por dia")}</h3>
+            <p className="hint">{tx("Chegadas previstas (λ) vs observadas. Os meses parciais (corrigidos pela completude) servem para monitorar; não recalibram o nível, porque no backtest operacional isso piorou o erro.")}</p>
             {opChegadas && <Grafico opcao={opChegadas} altura={230} />}
           </div>
         </div>

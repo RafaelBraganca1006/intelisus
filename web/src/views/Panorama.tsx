@@ -1,3 +1,4 @@
+import { tx } from '../i18n';
 import type { EChartsOption } from 'echarts';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Status } from '../components/Controles';
@@ -42,23 +43,23 @@ function dentro(lon: number, lat: number, geom: GeoJSON.Geometry) {
 function folga(m: number, c: number) {
   if (!(c > 0) || !isFinite(m)) return null;
   const d = Math.round(c - m);
-  return d >= 0 ? { n: d, acima: false, curto: `${n0(d)} livres`, longo: `${n0(d)} leitos livres` }
-    : { n: -d, acima: true, curto: `${n0(-d)} acima`, longo: `${n0(-d)} pacientes acima da capacidade` };
+  return d >= 0 ? { n: d, acima: false, curto: tx('{0} livres', n0(d)), longo: tx('{0} leitos livres', n0(d)) }
+    : { n: -d, acima: true, curto: tx('{0} acima', n0(-d)), longo: tx("{0} pacientes acima da capacidade", n0(-d)) };
 }
 const yyyymm = (d: Date) => d.getUTCFullYear() * 100 + d.getUTCMonth() + 1;
 const PASSOS = [7, 14, 28];
 type Nivel = 'todas' | '85' | '90' | '100' | 'risco';
 type Porte = 'todos' | 'p' | 'm' | 'g';
-const NIVEIS: [Nivel, string][] = [['todas', 'Todas'], ['85', '≥ 85%'], ['90', '≥ 90%'], ['100', '≥ 100%'], ['risco', 'Em risco (previsão)']];
-const PORTES: [Porte, string][] = [['todos', 'Todos'], ['p', 'Pequeno · < 100 leitos'], ['m', 'Médio · 100–499'], ['g', 'Grande · ≥ 500']];
+const NIVEIS: [Nivel, string][] = [['todas', tx("Todas")], ['85', '≥ 85%'], ['90', '≥ 90%'], ['100', '≥ 100%'], ['risco', tx("Em risco (previsão)")]];
+const PORTES: [Porte, string][] = [['todos', tx("Todos")], ['p', tx("Pequeno · < 100 leitos")], ['m', tx("Médio · 100–499")], ['g', tx("Grande · ≥ 500")]];
 const porteOk = (po: Porte, c: number) => po === 'todos' || (po === 'p' ? c < 100 : po === 'm' ? c >= 100 && c < 500 : c >= 500);
 type Aba = 'geral' | 'leitos' | 'hospitais' | 'municipios';
-const ABAS: [Aba, string][] = [['geral', 'Visão geral'], ['leitos', 'Leitos'], ['hospitais', 'Hospitais'], ['municipios', 'Municípios']];
+const ABAS: [Aba, string][] = [['geral', tx("Visão geral")], ['leitos', tx("Leitos")], ['hospitais', tx("Hospitais")], ['municipios', tx("Municípios")]];
 const INDM: { id: 'ocup' | 'taxa_pad' | 'fora_mun' | 'perm'; nome: string; curto: string; fmt: (v: number) => string }[] = [
-  { id: 'ocup', nome: 'Ocupação dos hospitais (12 meses)', curto: 'Ocupação', fmt: (v) => pct(v) },
-  { id: 'taxa_pad', nome: 'Internações /1.000 hab. (padronizada)', curto: 'Internação', fmt: (v) => n1(v) },
-  { id: 'fora_mun', nome: '% internado fora do município', curto: 'Fora do mun.', fmt: (v) => pct(v) },
-  { id: 'perm', nome: 'Permanência média (dias)', curto: 'Permanência', fmt: (v) => n1(v) },
+  { id: 'ocup', nome: tx("Ocupação dos hospitais (12 meses)"), curto: tx("Ocupação"), fmt: (v) => pct(v) },
+  { id: 'taxa_pad', nome: tx("Internações /1.000 hab. (padronizada)"), curto: tx("Internação"), fmt: (v) => n1(v) },
+  { id: 'fora_mun', nome: tx("% internado fora do município"), curto: tx("Fora do mun."), fmt: (v) => pct(v) },
+  { id: 'perm', nome: tx("Permanência média (dias)"), curto: tx("Permanência"), fmt: (v) => n1(v) },
 ];
 const norm = (t: string) => t.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
 type Res = { tipo: 'regiao' | 'municipio' | 'hospital'; id: number; nome: string; sub: string };
@@ -77,7 +78,7 @@ function PanoramaPronto() {
   const [g, setG] = useState(-1); // tipo de leito: -1 = Geral (soma de todos os tipos)
   const geral = g < 0;
   const gs = geral ? n.grupos.map((_, i) => i) : [g];
-  const grupoAtual = geral ? { id: 'Geral', nome: 'Geral' } : n.grupos[g];
+  const grupoAtual = geral ? { id: 'Geral', nome: tx("Geral") } : n.grupos[g];
   const corTipo = (i: number) => (i < 0 ? 'var(--text-2)' : corGrupo(i));
   const L = (x: Hospital) => gs.reduce((t, i) => t + x.leitos[i], 0);
   const Cn = (x: Hospital) => gs.reduce((t, i) => t + x.censo[i], 0);
@@ -362,9 +363,9 @@ function PanoramaPronto() {
     const nota = (nome: string) => { const nn = norm(nome); return toks.every((k) => nn.includes(k)) ? (nn.startsWith(toks[0]) ? 0 : 1) : -1; };
     const pega = (itens: { r: Res; sc: number }[], max: number) => itens.filter((x) => x.sc >= 0).sort((a, b) => a.sc - b.sc || a.r.nome.localeCompare(b.r.nome)).slice(0, max).map((x) => x.r);
     const drsNome = (id: string) => n.drs.find((x) => x.id === id)?.nome ?? '';
-    const regs = pega(n.regioes.map((r) => ({ r: { tipo: 'regiao' as const, id: r.id, nome: r.nome, sub: `Região · DRS ${drsNome(r.drs)}` }, sc: nota(r.nome) })), 5);
-    const muns = pega((municipios?.municipios ?? []).map((m) => ({ r: { tipo: 'municipio' as const, id: m.mun, nome: m.nome, sub: `Município · ${n.regioes.find((r) => r.id === m.regiao)?.nome ?? ''}` }, sc: nota(m.nome) })), 5);
-    const hosps = pega((hospitais?.hospitais ?? []).map((x) => ({ r: { tipo: 'hospital' as const, id: x.cnes, nome: x.nome, sub: `Hospital · ${x.municipio ?? ''}` }, sc: nota(x.nome + ' ' + (x.municipio ?? '')) })), 6);
+    const regs = pega(n.regioes.map((r) => ({ r: { tipo: 'regiao' as const, id: r.id, nome: r.nome, sub: tx("Região · DRS {0}", drsNome(r.drs)) }, sc: nota(r.nome) })), 5);
+    const muns = pega((municipios?.municipios ?? []).map((m) => ({ r: { tipo: 'municipio' as const, id: m.mun, nome: m.nome, sub: tx("Município · {0}", n.regioes.find((r) => r.id === m.regiao)?.nome ?? '') }, sc: nota(m.nome) })), 5);
+    const hosps = pega((hospitais?.hospitais ?? []).map((x) => ({ r: { tipo: 'hospital' as const, id: x.cnes, nome: x.nome, sub: tx("Hospital · {0}", x.municipio ?? '') }, sc: nota(x.nome + ' ' + (x.municipio ?? '')) })), 6);
     return [...regs, ...muns, ...hosps];
   }, [q, municipios, hospitais]);
   const escolher = (res: Res) => {
@@ -484,10 +485,10 @@ function PanoramaPronto() {
         }}
         tooltip={(t, id, props) => {
           if (t === 'cluster' && props) {
-            return <><b>{props.point_count} hospitais</b><div className="muted">clique para aproximar</div>
-              <div className="row"><span>Leitos SUS ({grupoAtual.id})</span><span>{n0(props.leitos)}</span></div>
-              <div className="row"><span>Ocupação média 12m</span><span>{pct(props.censo / Math.max(props.leitos, 1))}</span></div>
-              <div className="row"><span>Hospitais ≥ 90%</span><span>{props.crit}</span></div></>;
+            return <><b>{props.point_count} {tx("hospitais")}</b><div className="muted">{tx("clique para aproximar")}</div>
+              <div className="row"><span>{tx("Leitos SUS (")}{grupoAtual.id})</span><span>{n0(props.leitos)}</span></div>
+              <div className="row"><span>{tx("Ocupação média 12m")}</span><span>{pct(props.censo / Math.max(props.leitos, 1))}</span></div>
+              <div className="row"><span>{tx("Hospitais ≥ 90%")}</span><span>{props.crit}</span></div></>;
           }
           if (t === 'ponto') {
             const ms = estiloMapa === 'hospital' ? grupos.mapa.get(id) : hospitais?.hospitais.filter((y) => y.cnes === id);
@@ -495,57 +496,57 @@ function PanoramaPronto() {
             if (ms.length === 1) {
               const x = ms[0];
               return <><b>{x.nome}</b><div className="muted">{x.municipio}</div>
-                <div className="row"><span>Leitos SUS ({grupoAtual.id})</span><span>{L(x)}</span></div>
-                <div className="row"><span>Ocupação média 12m</span><span>{pct(Cn(x) / L(x))}</span></div></>;
+                <div className="row"><span>{tx("Leitos SUS (")}{grupoAtual.id})</span><span>{L(x)}</span></div>
+                <div className="row"><span>{tx("Ocupação média 12m")}</span><span>{pct(Cn(x) / L(x))}</span></div></>;
             }
             const LT = ms.reduce((t, x) => t + L(x), 0), CT = ms.reduce((t, x) => t + Cn(x), 0);
-            return <><b>{ms.length} unidades neste endereço</b><div className="muted">{ms[0].municipio}</div>
-              <div className="row"><span>Leitos SUS ({grupoAtual.id}) · total</span><span>{LT}</span></div>
-              <div className="row"><span>Ocupação média 12m</span><span>{pct(CT / LT)}</span></div>
+            return <><b>{ms.length} {tx("unidades neste endereço")}</b><div className="muted">{ms[0].municipio}</div>
+              <div className="row"><span>{tx("Leitos SUS (")}{grupoAtual.id}{tx(") · total")}</span><span>{LT}</span></div>
+              <div className="row"><span>{tx("Ocupação média 12m")}</span><span>{pct(CT / LT)}</span></div>
               <div style={{ borderTop: '1px solid var(--border)', margin: '6px 0 2px' }} />
               {ms.slice(0, 5).map((x) => <div key={x.cnes} className="row"><span>{x.nome.length > 30 ? x.nome.slice(0, 29) + '…' : x.nome}</span><span>{L(x)}</span></div>)}
-              {ms.length > 5 && <div className="muted">e mais {ms.length - 5}…</div>}</>;
+              {ms.length > 5 && <div className="muted">{tx("e mais")} {ms.length - 5}…</div>}</>;
           }
           if (t === 'area' && foco != null) {
             const m = municipios?.municipios.find((x) => x.mun === id);
             if (!m) return null;
             const v = valMun(m), ha = hospPorMun.get(m.mun);
-            return <><b>{m.nome}</b><div className="muted">{n0(m.pop)} habitantes</div>
+            return <><b>{m.nome}</b><div className="muted">{n0(m.pop)} {tx("habitantes")}</div>
               <div className="row"><span>{INDM[indMun].curto}</span><span>{v != null ? INDM[indMun].fmt(v) : '—'}</span></div>
-              <div className="row"><span>Hospitais com leitos {grupoAtual.id}</span><span>{ha ? `${ha.n} · ${ha.leitos} leitos` : 'nenhum'}</span></div></>;
+              <div className="row"><span>{tx("Hospitais com leitos")} {grupoAtual.id}</span><span>{ha ? tx("{0} · {1} leitos", ha.n, ha.leitos) : tx("nenhum")}</span></div></>;
           }
           const i = n.regioes.findIndex((r) => r.id === id);
           const r = n.regioes[i], dd = dados[i];
           const rk = lista.find((x) => x.r.id === id);
-          return <><b>{r.nome}</b><div className="muted">DRS {r.drs} · {n.drs.find((x) => x.id === r.drs)?.nome}</div>
-            <div className="row"><span>Ocupação {dataBR(d)}</span><span>{pct(dd.c > 0 ? dd.m / dd.c : NaN, 1)}</span></div>
-            <div className="row"><span>Leitos SUS</span><span>{n0(dd.c)}</span></div>
+          return <><b>{r.nome}</b><div className="muted">{tx("DRS")} {r.drs} · {n.drs.find((x) => x.id === r.drs)?.nome}</div>
+            <div className="row"><span>{tx("Ocupação")} {dataBR(d)}</span><span>{pct(dd.c > 0 ? dd.m / dd.c : NaN, 1)}</span></div>
+            <div className="row"><span>{tx("Leitos SUS")}</span><span>{n0(dd.c)}</span></div>
             {!obs && rk && <div className="row"><span>P(&gt;90%) em 4 sem.</span><span>{pct(rk.pmax)}</span></div>}
-            <div className="row"><span>População</span><span>{n0(r.pop)}</span></div></>;
+            <div className="row"><span>{tx("População")}</span><span>{n0(r.pop)}</span></div></>;
         }} />
 
       {/* painel contextual */}
-      <aside className="pano-panel float" aria-label="Resumo do recorte selecionado">
+      <aside className="pano-panel float" aria-label={tx("Resumo do recorte selecionado")}>
         {hospCard ? (
         <div className="pano-head">
-          <button className="ghost collapse" aria-label="Recolher painel" title="Recolher painel" onClick={() => setPainel(false)}>{I.seta}</button>
-          <h2>Hospital</h2>
-          <button className="back" onClick={() => setHospSel(null)}>← {rEsc ? rEsc.nome : 'Voltar ao panorama'}</button>
+          <button className="ghost collapse" aria-label={tx("Recolher painel")} title={tx("Recolher painel")} onClick={() => setPainel(false)}>{I.seta}</button>
+          <h2>{tx("Hospital")}</h2>
+          <button className="back" onClick={() => setHospSel(null)}>← {rEsc ? rEsc.nome : tx("Voltar ao panorama")}</button>
           <div className="esc esc-hosp">{hospCard!.nome}</div>
           <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>{hospCard!.municipio} · {hospCard!.esfera?.toLowerCase()}</div>
         </div>
         ) : (
         <div className="pano-head">
-          <button className="ghost collapse" aria-label="Recolher painel" title="Recolher painel" onClick={() => setPainel(false)}>{I.seta}</button>
-          <h2>Panorama</h2>
+          <button className="ghost collapse" aria-label={tx("Recolher painel")} title={tx("Recolher painel")} onClick={() => setPainel(false)}>{I.seta}</button>
+          <h2>{tx("Panorama")}</h2>
           {rEsc
-            ? <button className="back" onClick={() => set({ escopo: { tipo: 'estado' } })}>← Estado de São Paulo</button>
-            : escopo.tipo === 'drs' && <button className="back" onClick={() => set({ escopo: { tipo: 'estado' } })}>← Estado de São Paulo</button>}
+            ? <button className="back" onClick={() => set({ escopo: { tipo: 'estado' } })}>{tx("← Estado de São Paulo")}</button>
+            : escopo.tipo === 'drs' && <button className="back" onClick={() => set({ escopo: { tipo: 'estado' } })}>{tx("← Estado de São Paulo")}</button>}
           <div className="esc">{rEsc ? rEsc.nome : nome}</div>
           {rEsc && (
             <button className={`foco-btn ${focar ? 'on' : ''}`} onClick={() => setFocar(!focar)} aria-pressed={focar}
-              title={focar ? 'Voltar a mostrar o estado todo' : 'Mostrar só esta região, com zoom'}>
-              <span className="ico">{I.panorama}</span>{focar ? 'Sair do foco' : 'Enfocar região'}
+              title={focar ? tx("Voltar a mostrar o estado todo") : tx("Mostrar só esta região, com zoom")}>
+              <span className="ico">{I.panorama}</span>{focar ? tx("Sair do foco") : tx("Enfocar região")}
             </button>
           )}
         </div>
@@ -561,37 +562,37 @@ function PanoramaPronto() {
                   <span className="big num">{pct(oc, 1)}</span>
                   {L(hc) > 0 && <Status nivel={nivelOcupacao(oc)} />}
                 </div>
-                <div className="headline-sub">ocupação média de 12 meses · {grupoAtual.nome.toLowerCase()}</div>
-                {(() => { const f = folga(Cn(hc), L(hc)); return f && <div className={`folga ${f.acima ? 'acima' : ''}`}><b className="num">{f.longo}</b><span>em média, de {n0(L(hc))} leitos SUS</span></div>; })()}
+                <div className="headline-sub">{tx("ocupação média de 12 meses ·")} {grupoAtual.nome.toLowerCase()}</div>
+                {(() => { const f = folga(Cn(hc), L(hc)); return f && <div className={`folga ${f.acima ? 'acima' : ''}`}><b className="num">{f.longo}</b><span>{tx("em média, de")} {n0(L(hc))} {tx("leitos SUS")}</span></div>; })()}
                 <div className="mini">
-                  <div><div className="lbl">Leitos SUS ({grupoAtual.id})</div><div className="val num">{n0(L(hc))}</div><div className="det">CNES</div></div>
-                  <div><div className="lbl">Internados em média</div><div className="val num">{n0(Cn(hc))}</div><div className="det">censo médio diário</div></div>
-                  <div><div className="lbl">Permanência média</div><div className="val num">{hc.perm != null ? `${n1(hc.perm)} d` : '—'}</div><div className="det">dias por internação</div></div>
-                  <div><div className="lbl">Letalidade hospitalar</div><div className="val num">{hc.letal != null ? pct(hc.letal, 1) : '—'}</div><div className="det">óbitos / internações</div></div>
+                  <div><div className="lbl">{tx("Leitos SUS (")}{grupoAtual.id})</div><div className="val num">{n0(L(hc))}</div><div className="det">{tx("CNES")}</div></div>
+                  <div><div className="lbl">{tx("Internados em média")}</div><div className="val num">{n0(Cn(hc))}</div><div className="det">{tx("censo médio diário")}</div></div>
+                  <div><div className="lbl">{tx("Permanência média")}</div><div className="val num">{hc.perm != null ? `${n1(hc.perm)} d` : '—'}</div><div className="det">{tx("dias por internação")}</div></div>
+                  <div><div className="lbl">{tx("Letalidade hospitalar")}</div><div className="val num">{hc.letal != null ? pct(hc.letal, 1) : '—'}</div><div className="det">{tx("óbitos / internações")}</div></div>
                 </div>
-                {oc > 1.5 && <div className="muted" style={{ fontSize: 11, margin: '-6px 0 10px' }}>Acima de 150% costuma indicar leitos subnotificados no CNES, e não superlotação real.</div>}
+                {oc > 1.5 && <div className="muted" style={{ fontSize: 11, margin: '-6px 0 10px' }}>{tx("Acima de 150% costuma indicar leitos subnotificados no CNES, e não superlotação real.")}</div>}
 
-                <div className="sec-t">Por tipo de leito<span>média de 12 meses</span></div>
+                <div className="sec-t">{tx("Por tipo de leito")}<span>{tx("média de 12 meses")}</span></div>
                 <div className="matriz">
                   {hospTipos.map(({ gr, gg, l, c }) => (
                     <div key={gr.id} className={`mrow ${gg === g ? 'sel' : ''}`} onClick={() => setG(gg)}>
                       <span className="mn"><i className="swatch" style={{ background: corGrupo(gg) }} />{gr.nome}</span>
-                      <span className="mv num">{n0(l)} leitos</span>
+                      <span className="mv num">{n0(l)} {tx("leitos")}</span>
                       <span className="mc num" style={{ background: corOcupacao(c / Math.max(l, 1)), color: c / Math.max(l, 1) < 0.8 ? '#0b1f3d' : '#fff' }}>{pct(c / Math.max(l, 1))}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className="sec-t">Censo semanal<span>2 anos até {dataBR(parseData(hospitais!.semana_final))}</span></div>
+                <div className="sec-t">{tx("Censo semanal")}<span>{tx("2 anos até")} {dataBR(parseData(hospitais!.semana_final))}</span></div>
                 {opHosp && <Grafico opcao={opHosp} altura={150} />}
 
-                <div className="sec-t">Perfil do atendimento<span>últimos 12 meses</span></div>
-                <div className="kv"><span>Internações por ano</span><b className="num">{n0(hc.n)}</b></div>
-                <div className="kv"><span>Municípios de origem</span><b className="num">{n0(hc.n_mun)}</b></div>
-                <div className="kv"><span>Pacientes de fora do município</span><b className="num">{hc.de_fora != null ? pct(hc.de_fora, 1) : '—'}</b></div>
-                <div className="kv"><span>Faturamento SUS por ano</span><b className="num">{hc.valor ? reais(hc.valor) : '—'}</b></div>
+                <div className="sec-t">{tx("Perfil do atendimento")}<span>{tx("últimos 12 meses")}</span></div>
+                <div className="kv"><span>{tx("Internações por ano")}</span><b className="num">{n0(hc.n)}</b></div>
+                <div className="kv"><span>{tx("Municípios de origem")}</span><b className="num">{n0(hc.n_mun)}</b></div>
+                <div className="kv"><span>{tx("Pacientes de fora do município")}</span><b className="num">{hc.de_fora != null ? pct(hc.de_fora, 1) : '—'}</b></div>
+                <div className="kv"><span>{tx("Faturamento SUS por ano")}</span><b className="num">{hc.valor ? reais(hc.valor) : '—'}</b></div>
                 {hc.regiao != null && regSel !== Number(hc.regiao) && (
-                  <button className="vermais" onClick={() => { const rid = Number(hc.regiao); setHospSel(null); set({ escopo: { tipo: 'regiao', id: rid } }); }}>Ver a região deste hospital</button>
+                  <button className="vermais" onClick={() => { const rid = Number(hc.regiao); setHospSel(null); set({ escopo: { tipo: 'regiao', id: rid } }); }}>{tx("Ver a região deste hospital")}</button>
                 )}
               </>
             );
@@ -604,26 +605,26 @@ function PanoramaPronto() {
             {cap > 0 && <Status nivel={nivelOcupacao(taxa)} />}
           </div>
           <div className="headline-sub">
-            {obs ? <>ocupação de {grupoAtual.nome.toLowerCase()} em {dataBR(d)}{diffDias(d, sync) === 0 ? ' (último dado)' : ''}</>
-              : <>ocupação prevista de {grupoAtual.nome.toLowerCase()} em {dataBR(d)} · IC 80%: {pct(Math.max(0, m - Z80 * dp) / cap)} – {pct((m + Z80 * dp) / cap)}</>}
+            {obs ? <>{tx("ocupação de")} {grupoAtual.nome.toLowerCase()} {tx("em")} {dataBR(d)}{diffDias(d, sync) === 0 ? tx(" (último dado)") : ''}</>
+              : <>{tx("ocupação prevista de")} {grupoAtual.nome.toLowerCase()} {tx("em")} {dataBR(d)} {tx("· IC 80%:")} {pct(Math.max(0, m - Z80 * dp) / cap)} – {pct((m + Z80 * dp) / cap)}</>}
           </div>
-          {(() => { const f = folga(m, cap); return f && <div className={`folga ${f.acima ? 'acima' : ''}`}><b className="num">{f.longo}</b><span>de {n0(cap)} leitos SUS</span></div>; })()}
+          {(() => { const f = folga(m, cap); return f && <div className={`folga ${f.acima ? 'acima' : ''}`}><b className="num">{f.longo}</b><span>{tx("de")} {n0(cap)} {tx("leitos SUS")}</span></div>; })()}
           <div className="mini">
-            <div><div className="lbl">Pacientes internados</div><div className="val num">{n0(m)}</div><div className="det">{obs ? 'censo SUS à meia-noite' : `±${n0(Z80 * dp)} (80%)`}</div></div>
-            <div><div className="lbl">Leitos SUS</div><div className="val num">{n0(cap)}</div><div className="det">{(() => { const f = folga(m, cap); return f ? f.curto : '—'; })()}</div></div>
+            <div><div className="lbl">{tx("Pacientes internados")}</div><div className="val num">{n0(m)}</div><div className="det">{obs ? tx("censo SUS à meia-noite") : `±${n0(Z80 * dp)} (80%)`}</div></div>
+            <div><div className="lbl">{tx("Leitos SUS")}</div><div className="val num">{n0(cap)}</div><div className="det">{(() => { const f = folga(m, cap); return f ? f.curto : '—'; })()}</div></div>
             {obs ? (
               <>
-                <div><div className="lbl">Há 4 semanas</div><div className="val num">{antes != null ? pct(antes, 1) : '—'}</div>
+                <div><div className="lbl">{tx("Há 4 semanas")}</div><div className="val num">{antes != null ? pct(antes, 1) : '—'}</div>
                   <div className="det">{antes != null && isFinite(taxa) ? `${taxa >= antes ? '+' : '−'}${(Math.abs(taxa - antes) * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} p.p.` : ''}</div></div>
-                <div><div className="lbl">{rEsc ? 'População' : 'Regiões ≥ 90%'}</div>
-                  <div className="val num">{rEsc ? n0(rEsc.pop) : `${nAlta} de ${lista.length}`}</div><div className="det">{rEsc ? 'residentes' : 'neste dia'}</div></div>
+                <div><div className="lbl">{rEsc ? tx("População") : tx("Regiões ≥ 90%")}</div>
+                  <div className="val num">{rEsc ? n0(rEsc.pop) : tx('{0} de {1}', nAlta, lista.length)}</div><div className="det">{rEsc ? tx("residentes") : tx("neste dia")}</div></div>
               </>
             ) : (
               <>
-                <div><div className="lbl">Pico em 8 semanas</div><div className="val num">{pico && cap > 0 ? pct(pico.v / cap, 1) : '—'}</div>
-                  <div className="det">{pico && `${dataBR(pico.data).slice(0, 5)} · ${n0(pico.v)} pac.`}</div></div>
-                <div><div className="lbl">{rEsc ? 'População' : 'Regiões em risco'}</div>
-                  <div className="val num">{rEsc ? n0(rEsc.pop) : `${nRisco} de ${lista.length}`}</div><div className="det">{rEsc ? 'residentes' : 'P(>90%) ≥ 50% em 4 sem.'}</div></div>
+                <div><div className="lbl">{tx("Pico em 8 semanas")}</div><div className="val num">{pico && cap > 0 ? pct(pico.v / cap, 1) : '—'}</div>
+                  <div className="det">{pico && tx("{0} · {1} pac.", dataBR(pico.data).slice(0, 5), n0(pico.v))}</div></div>
+                <div><div className="lbl">{rEsc ? tx("População") : tx("Regiões em risco")}</div>
+                  <div className="val num">{rEsc ? n0(rEsc.pop) : tx('{0} de {1}', nRisco, lista.length)}</div><div className="det">{rEsc ? tx("residentes") : tx("P(>90%) ≥ 50% em 4 sem.")}</div></div>
               </>
             )}
           </div>
@@ -631,33 +632,33 @@ function PanoramaPronto() {
           
               {foco != null ? (
                 <>
-          <div className="abas" role="tablist" aria-label="Detalhe da região">
+          <div className="abas" role="tablist" aria-label={tx("Detalhe da região")}>
             {ABAS.map(([id, t]) => <button key={id} role="tab" aria-selected={abaFoco === id} className={abaFoco === id ? 'on' : ''} onClick={() => setAbaFoco(id)}>{t}</button>)}
           </div>
           {abaFoco === 'geral' && (
             <>
-              <div className="sec-t">Comparação<span>ocupação em {dataBR(d)}</span></div>
-              {[['Esta região', taxa], ['DRS ' + (n.drs.find((x) => x.id === rEsc?.drs)?.nome ?? ''), taxaDe((r) => r.drs === rEsc?.drs)], ['Estado de São Paulo', taxaDe(() => true)]].map(([nm, v]) => (
+              <div className="sec-t">{tx("Comparação")}<span>{tx("ocupação em")} {dataBR(d)}</span></div>
+              {[[tx("Esta região"), taxa], ['DRS ' + (n.drs.find((x) => x.id === rEsc?.drs)?.nome ?? ''), taxaDe((r) => r.drs === rEsc?.drs)], [tx("Estado de São Paulo"), taxaDe(() => true)]].map(([nm, v]) => (
                 <div key={String(nm)} className="cmp"><span>{nm}</span><div className="bar"><i style={{ width: `${Math.min(100, ((v as number) || 0) * 100 / 1.3)}%`, background: corOcupacao(v as number) }} /></div><b className="num">{pct(v as number, 1)}</b></div>
               ))}
               <div className="mini" style={{ marginTop: 12 }}>
-                <div><div className="lbl">Municípios</div><div className="val num">{munsReg.length}</div><div className="det">na região</div></div>
-                <div><div className="lbl">Hospitais</div><div className="val num">{hospLista.length}</div><div className="det">com leitos {grupoAtual.id}</div></div>
+                <div><div className="lbl">{tx("Municípios")}</div><div className="val num">{munsReg.length}</div><div className="det">{tx("na região")}</div></div>
+                <div><div className="lbl">{tx("Hospitais")}</div><div className="val num">{hospLista.length}</div><div className="det">{tx("com leitos")} {grupoAtual.id}</div></div>
               </div>
-              <div className="sec-t">Linha do tempo
-            <span className="lg"><i style={{ background: 'var(--text-1)' }} />observado <i style={{ background: 'var(--prev)' }} />previsão <i className="tr" />meta 85%</span></div>
+              <div className="sec-t">{tx("Linha do tempo")}
+            <span className="lg"><i style={{ background: 'var(--text-1)' }} />{tx("observado")} <i style={{ background: 'var(--prev)' }} />{tx("previsão")} <i className="tr" />{tx("meta 85%")}</span></div>
           <Leque d={lequeD} altura={170} compacto />
             </>
           )}
           {abaFoco === 'leitos' && (
             <>
-              <div className="sec-t">Todos os tipos de leito<span>{dataBR(d)}{obs ? '' : ' · previsão'}</span></div>
+              <div className="sec-t">{tx("Todos os tipos de leito")}<span>{dataBR(d)}{obs ? '' : tx(" · previsão")}</span></div>
               <div className="matriz">
                 {(() => {
                   const mm = matriz.reduce((t, x) => t + x.m, 0), c = matriz.reduce((t, x) => t + x.c, 0);
                   return (
                     <div className={`mrow ${geral ? 'sel' : ''}`} onClick={() => setG(-1)}>
-                      <span className="mn"><i className="swatch" style={{ background: corTipo(-1) }} /><b>Geral</b></span>
+                      <span className="mn"><i className="swatch" style={{ background: corTipo(-1) }} /><b>{tx("Geral")}</b></span>
                       <span className="mv num">{n0(mm)} / {n0(c)} · {folga(mm, c)?.curto ?? '—'}</span>
                       <span className="mc num" style={{ background: c > 0 ? corOcupacao(mm / c) : 'var(--surface-3)', color: c > 0 && mm / c >= 0.8 ? '#fff' : '#0b1f3d' }}>{c > 0 ? pct(mm / c) : '—'}</span>
                     </div>
@@ -671,19 +672,19 @@ function PanoramaPronto() {
                   </div>
                 ))}
               </div>
-              <div className="muted" style={{ fontSize: 11, marginTop: 8 }}>Internados / leitos SUS. Clique num tipo para ver o mapa dele.</div>
+              <div className="muted" style={{ fontSize: 11, marginTop: 8 }}>{tx("Internados / leitos SUS. Clique num tipo para ver o mapa dele.")}</div>
             </>
           )}
           {abaFoco === 'hospitais' && (
             <>
-              <div className="sec-t">Hospitais · {rEsc?.nome}<span>média dos últimos 12 meses</span></div>
+              <div className="sec-t">{tx("Hospitais ·")} {rEsc?.nome}<span>{tx("média dos últimos 12 meses")}</span></div>
               <div className="rlist">
-                {hospLista.length === 0 && <div className="muted" style={{ fontSize: 12, padding: '4px 8px' }}>Nenhum hospital com leitos deste tipo.</div>}
+                {hospLista.length === 0 && <div className="muted" style={{ fontSize: 12, padding: '4px 8px' }}>{tx("Nenhum hospital com leitos deste tipo.")}</div>}
                 {hospLista.map(({ x, oc }) => (
                   <div key={x.cnes} className={`rrow ${hospSel === x.cnes ? 'sel' : ''}`} onClick={() => irAoHospital(x)}>
-                    <div><div className="nm">{x.nome.length > 34 ? x.nome.slice(0, 33) + '…' : x.nome}</div><div className="sb">{x.municipio} · {L(x)} leitos · {folga(Cn(x), L(x))?.curto}</div></div>
+                    <div><div className="nm">{x.nome.length > 34 ? x.nome.slice(0, 33) + '…' : x.nome}</div><div className="sb">{x.municipio} · {L(x)} {tx("leitos ·")} {folga(Cn(x), L(x))?.curto}</div></div>
                     <span className="ocup"><i className="swatch" style={{ background: corOcupacao(oc) }} />{pct(oc)}</span>
-                    <span className="ex">{oc >= 0.9 && <span className="alerta" title="Ocupação média acima de 90%">▲</span>}</span>
+                    <span className="ex">{oc >= 0.9 && <span className="alerta" title={tx("Ocupação média acima de 90%")}>▲</span>}</span>
                   </div>
                 ))}
               </div>
@@ -694,24 +695,24 @@ function PanoramaPronto() {
               <div className="fgrid" style={{ margin: '12px 0 8px' }}>
                 {INDM.map((x, i) => <button key={x.id} className={`chip ${indMun === i ? 'on' : ''}`} onClick={() => setIndMun(i)}>{x.curto}</button>)}
               </div>
-              <div className="muted" style={{ fontSize: 11, marginBottom: 6 }}>{INDM[indMun].nome}. Dados dos hospitais e dos residentes até {municipios ? dataBR(parseData(municipios.meses[municipios.meses.length - 1])).slice(3) : '—'}, sem relação com a data da régua.</div>
+              <div className="muted" style={{ fontSize: 11, marginBottom: 6 }}>{INDM[indMun].nome}{tx(". Dados dos hospitais e dos residentes até")} {municipios ? dataBR(parseData(municipios.meses[municipios.meses.length - 1])).slice(3) : '—'}{tx(", sem relação com a data da régua.")}</div>
               {munCard && (
                 <div className="hcard">
-                  <div className="hc-top"><div><b>{munCard.nome}</b><div className="muted">{n0(munCard.pop)} habitantes · {n0(munCard.pop60)} com 60+</div></div>
-                    <button className="ghost" aria-label="Fechar município" onClick={() => setMunSel(null)}>×</button></div>
-                  <div className="kv"><span>Hospitais com leitos {grupoAtual.id}</span><b className="num">{hospPorMun.get(munCard.mun) ? `${hospPorMun.get(munCard.mun)!.n} · ${hospPorMun.get(munCard.mun)!.leitos} leitos` : 'nenhum'}</b></div>
-                  <div className="kv"><span>Ocupação dos hospitais (12m)</span><b className="num">{hospPorMun.get(munCard.mun) ? pct(hospPorMun.get(munCard.mun)!.censo / hospPorMun.get(munCard.mun)!.leitos) : '—'}</b></div>
-                  <div className="kv"><span>Internações por ano (residentes)</span><b className="num">{n0(munCard.n)}</b></div>
-                  <div className="kv"><span>Taxa padronizada /1.000</span><b className="num">{munCard.taxa_pad != null ? n1(munCard.taxa_pad) : '—'}</b></div>
-                  <div className="kv"><span>Internados fora do município</span><b className="num">{munCard.fora_mun != null ? pct(munCard.fora_mun) : '—'}</b></div>
-                  <div className="kv"><span>Permanência média</span><b className="num">{munCard.perm != null ? `${n1(munCard.perm)} d` : '—'}</b></div>
-                  {munCard.destinos.length > 0 && <div className="muted" style={{ fontSize: 11, marginTop: 6 }}>Principais destinos: {munCard.destinos.slice(0, 3).map(([dd]) => nomeMun(dd)).join(', ')}</div>}
+                  <div className="hc-top"><div><b>{munCard.nome}</b><div className="muted">{n0(munCard.pop)} {tx("habitantes ·")} {n0(munCard.pop60)} {tx("com 60+")}</div></div>
+                    <button className="ghost" aria-label={tx("Fechar município")} onClick={() => setMunSel(null)}>×</button></div>
+                  <div className="kv"><span>{tx("Hospitais com leitos")} {grupoAtual.id}</span><b className="num">{hospPorMun.get(munCard.mun) ? tx("{0} · {1} leitos", hospPorMun.get(munCard.mun)!.n, hospPorMun.get(munCard.mun)!.leitos) : tx("nenhum")}</b></div>
+                  <div className="kv"><span>{tx("Ocupação dos hospitais (12m)")}</span><b className="num">{hospPorMun.get(munCard.mun) ? pct(hospPorMun.get(munCard.mun)!.censo / hospPorMun.get(munCard.mun)!.leitos) : '—'}</b></div>
+                  <div className="kv"><span>{tx("Internações por ano (residentes)")}</span><b className="num">{n0(munCard.n)}</b></div>
+                  <div className="kv"><span>{tx("Taxa padronizada /1.000")}</span><b className="num">{munCard.taxa_pad != null ? n1(munCard.taxa_pad) : '—'}</b></div>
+                  <div className="kv"><span>{tx("Internados fora do município")}</span><b className="num">{munCard.fora_mun != null ? pct(munCard.fora_mun) : '—'}</b></div>
+                  <div className="kv"><span>{tx("Permanência média")}</span><b className="num">{munCard.perm != null ? `${n1(munCard.perm)} d` : '—'}</b></div>
+                  {munCard.destinos.length > 0 && <div className="muted" style={{ fontSize: 11, marginTop: 6 }}>{tx("Principais destinos:")} {munCard.destinos.slice(0, 3).map(([dd]) => nomeMun(dd)).join(', ')}</div>}
                 </div>
               )}
               <div className="rlist">
                 {munRank.map(({ m: mm, v }) => (
                   <div key={mm.mun} className={`rrow ${munSel === mm.mun ? 'sel' : ''}`} onClick={() => setMunSel(munSel === mm.mun ? null : mm.mun)}>
-                    <div><div className="nm">{mm.nome}</div><div className="sb">{n0(mm.pop)} hab.</div></div>
+                    <div><div className="nm">{mm.nome}</div><div className="sb">{n0(mm.pop)} {tx("hab.")}</div></div>
                     <span className="ocup">{v != null && <i className="swatch" style={{ background: indMun === 0 ? corOcupacao(v) : corSeq((v - mLo) / ((mHi - mLo) || 1)) }} />}{v != null ? INDM[indMun].fmt(v) : '—'}</span>
                     <span className="ex" />
                   </div>
@@ -722,44 +723,44 @@ function PanoramaPronto() {
                 </>
               ) : (
                 <>
-<div className="sec-t">Linha do tempo
-            <span className="lg"><i style={{ background: 'var(--text-1)' }} />observado <i style={{ background: 'var(--prev)' }} />previsão <i className="tr" />meta 85%</span></div>
+<div className="sec-t">{tx("Linha do tempo")}
+            <span className="lg"><i style={{ background: 'var(--text-1)' }} />{tx("observado")} <i style={{ background: 'var(--prev)' }} />{tx("previsão")} <i className="tr" />{tx("meta 85%")}</span></div>
           <Leque d={lequeD} altura={170} compacto />
 
-          <div className="sec-t">{rEsc ? `Hospitais · ${rEsc.nome}` : drsLista ? `Hospitais · ${n.drs.find((x) => x.id === drsLista)?.nome}` : 'Hospitais mais ocupados'}
-            <span>média dos últimos 12 meses</span></div>
+          <div className="sec-t">{rEsc ? tx("Hospitais · {0}", rEsc.nome) : drsLista ? tx("Hospitais · {0}", n.drs.find((x) => x.id === drsLista)?.nome) : tx("Hospitais mais ocupados")}
+            <span>{tx("média dos últimos 12 meses")}</span></div>
           <div className="rlist">
-            {hospMostrar.length === 0 && <div className="muted" style={{ fontSize: 12, padding: '4px 8px' }}>Nenhum hospital com leitos deste tipo neste recorte.</div>}
+            {hospMostrar.length === 0 && <div className="muted" style={{ fontSize: 12, padding: '4px 8px' }}>{tx("Nenhum hospital com leitos deste tipo neste recorte.")}</div>}
             {(verMaisHosp ? hospMostrar : hospMostrar.slice(0, 5)).map(({ x, oc }) => (
               <div key={x.cnes} className={`rrow ${hospSel === x.cnes ? 'sel' : ''}`} onClick={() => irAoHospital(x)}>
-                <div><div className="nm">{x.nome.length > 34 ? x.nome.slice(0, 33) + '…' : x.nome}</div><div className="sb">{x.municipio} · {L(x)} leitos · {folga(Cn(x), L(x))?.curto}</div></div>
+                <div><div className="nm">{x.nome.length > 34 ? x.nome.slice(0, 33) + '…' : x.nome}</div><div className="sb">{x.municipio} · {L(x)} {tx("leitos ·")} {folga(Cn(x), L(x))?.curto}</div></div>
                 <span className="ocup"><i className="swatch" style={{ background: corOcupacao(oc) }} />{pct(oc)}</span>
-                <span className="ex">{oc >= 0.9 && <span className="alerta" title="Ocupação média acima de 90%">▲</span>}</span>
+                <span className="ex">{oc >= 0.9 && <span className="alerta" title={tx("Ocupação média acima de 90%")}>▲</span>}</span>
               </div>
             ))}
           </div>
-          {hospMostrar.length > 5 && <button className="vermais" onClick={() => setVerMaisHosp(!verMaisHosp)}>{verMaisHosp ? 'Ver menos' : `Ver mais (+${hospMostrar.length - 5})`}</button>}
-          {hospMostrar.some((h) => h.oc > 1.5) && <div className="muted" style={{ fontSize: 11, padding: '6px 0 0' }}>Valores acima de 150% costumam indicar leitos subnotificados no CNES, e não superlotação real.</div>}
-          {regSel == null && hospLista.length > hospMostrar.length && <div className="muted" style={{ fontSize: 11, padding: '6px 0 0' }}>Ranking dos mais ocupados (≥ 20 leitos). Selecione uma região para ver todos os hospitais dela.</div>}
+          {hospMostrar.length > 5 && <button className="vermais" onClick={() => setVerMaisHosp(!verMaisHosp)}>{verMaisHosp ? tx("Ver menos") : tx("Ver mais (+{0})", hospMostrar.length - 5)}</button>}
+          {hospMostrar.some((h) => h.oc > 1.5) && <div className="muted" style={{ fontSize: 11, padding: '6px 0 0' }}>{tx("Valores acima de 150% costumam indicar leitos subnotificados no CNES, e não superlotação real.")}</div>}
+          {regSel == null && hospLista.length > hospMostrar.length && <div className="muted" style={{ fontSize: 11, padding: '6px 0 0' }}>{tx("Ranking dos mais ocupados (≥ 20 leitos). Selecione uma região para ver todos os hospitais dela.")}</div>}
 
-          <div className="sec-t">{drsLista ? `Regiões · ${n.drs.find((x) => x.id === drsLista)?.nome}` : 'Regiões do estado'}
-            <span>{obs ? 'por ocupação' : 'ocupação · P(>90%) em 4 sem.'}</span></div>
+          <div className="sec-t">{drsLista ? tx("Regiões · {0}", n.drs.find((x) => x.id === drsLista)?.nome) : tx("Regiões do estado")}
+            <span>{obs ? tx("por ocupação") : tx("ocupação · P(>90%) em 4 sem.")}</span></div>
           <div className="rlist">
             {(verMaisReg ? lista : lista.slice(0, 5)).map((x) => (
               <div key={x.r.id}
                 className={`rrow ${regSel === x.r.id ? 'sel' : ''}`}
                 onClick={() => set({ escopo: regSel === x.r.id ? { tipo: 'estado' } : { tipo: 'regiao', id: x.r.id } })}>
-                <div><div className="nm">{x.r.nome}</div><div className="sb">{n.drs.find((dd) => dd.id === x.r.drs)?.nome} · {n0(x.c)} leitos</div></div>
+                <div><div className="nm">{x.r.nome}</div><div className="sb">{n.drs.find((dd) => dd.id === x.r.drs)?.nome} · {n0(x.c)} {tx("leitos")}</div></div>
                 <span className="ocup"><i className="swatch" style={{ background: corOcupacao(x.ocup) }} />{pct(x.ocup)}</span>
                 <span className="ex" style={{ fontWeight: !obs && x.pmax >= 0.5 ? 700 : 400 }}>{obs ? (() => { const f = folga(dados[x.i].m, x.c); return f ? <span className={f.acima ? 'ac' : 'lv'}>{f.curto}</span> : ''; })() : pct(x.pmax)}</span>
               </div>
             ))}
           </div>
-          {lista.length > 5 && <button className="vermais" onClick={() => setVerMaisReg(!verMaisReg)}>{verMaisReg ? 'Ver menos' : `Ver mais (+${lista.length - 5})`}</button>}
+          {lista.length > 5 && <button className="vermais" onClick={() => setVerMaisReg(!verMaisReg)}>{verMaisReg ? tx("Ver menos") : tx("Ver mais (+{0})", lista.length - 5)}</button>}
                           </>
               )}
               <div className="muted" style={{ fontSize: 11, marginTop: 12 }}>
-            Modelo sincronizado em {dataBR(sync)} · SIH até {String(n.meta.competencia).replace(/(\d{4})(\d{2})/, '$2/$1')}
+            {tx("Modelo sincronizado em")} {dataBR(sync)} {tx("· SIH até")} {String(n.meta.competencia).replace(/(\d{4})(\d{2})/, '$2/$1')}
           </div>
             </>
           )}
@@ -770,15 +771,15 @@ function PanoramaPronto() {
       <div className="pano-top" ref={popRef}>
         <div className="filt-row">
           {!painel && (
-            <button className="pano-reopen float" onClick={() => setPainel(true)} aria-label="Abrir painel">
+            <button className="pano-reopen float" onClick={() => setPainel(true)} aria-label={tx("Abrir painel")}>
               <span className="ghost">{I.seta}</span>
-              <span className="num">{pct(taxa, 0)}</span><span className="muted" style={{ fontWeight: 400 }}>Resumo</span>
+              <span className="num">{pct(taxa, 0)}</span><span className="muted" style={{ fontWeight: 400 }}>{tx("Resumo")}</span>
             </button>
           )}
           <div className="busca" ref={buscaRef}>
             <label className="apill busca-in">
               <span className="ico">{I.busca}</span>
-              <input ref={buscaInput} value={q} placeholder="Buscar região, município ou hospital" aria-label="Buscar" spellCheck={false}
+              <input ref={buscaInput} value={q} placeholder={tx("Buscar região, município ou hospital")} aria-label={tx("Buscar")} spellCheck={false}
                 onFocus={() => setBuscaAberta(true)} onChange={(e) => { setQ(e.target.value); setIdxB(0); setBuscaAberta(true); }}
                 onKeyDown={(e) => {
                   if (e.key === 'ArrowDown') { e.preventDefault(); setIdxB((i) => Math.min(i + 1, resultados.length - 1)); }
@@ -790,7 +791,7 @@ function PanoramaPronto() {
             </label>
             {buscaAberta && q.trim().length >= 2 && (
               <div className="busca-res float" role="listbox">
-                {resultados.length === 0 && <div className="muted" style={{ padding: '10px 12px', fontSize: 12.5 }}>Nenhum resultado para “{q}”.</div>}
+                {resultados.length === 0 && <div className="muted" style={{ padding: '10px 12px', fontSize: 12.5 }}>{tx("Nenhum resultado para “")}{q}”.</div>}
                 {resultados.map((res, i) => (
                   <button key={`${res.tipo}-${res.id}`} role="option" aria-selected={i === idxB} className={`bres ${i === idxB ? 'on' : ''}`}
                     onMouseEnter={() => setIdxB(i)} onClick={() => escolher(res)}>
@@ -801,16 +802,16 @@ function PanoramaPronto() {
             )}
           </div>
           <button className={`apill drop ${filtros ? 'ativo' : ''}`} onClick={() => setFiltros(!filtros)} aria-expanded={filtros}>
-            <span className="ico">{I.filtro}</span>Filtros{nFiltros > 0 && <span className="count">{nFiltros}</span>}
+            <span className="ico">{I.filtro}</span>{tx("Filtros")}{nFiltros > 0 && <span className="count">{nFiltros}</span>}
           </button>
           <div className="tipo-dd" ref={tipoRef}>
             <button className="apill drop" aria-haspopup="listbox" aria-expanded={tipoMenu} onClick={() => setTipoMenu(!tipoMenu)}>
               <i className="swatch" style={{ background: corTipo(g) }} />{grupoAtual.nome}<span className="chev">{I.seta}</span>
             </button>
             {tipoMenu && (
-              <div className="menu float" role="listbox" aria-label="Tipo de internação">
+              <div className="menu float" role="listbox" aria-label={tx("Tipo de internação")}>
                 <button role="option" aria-selected={geral} className={geral ? 'on' : ''} onClick={() => { setG(-1); setTipoMenu(false); }}>
-                  <i className="swatch" style={{ background: corTipo(-1) }} />Geral (todos os tipos){geral && <span className="ck">✓</span>}
+                  <i className="swatch" style={{ background: corTipo(-1) }} />{tx("Geral (todos os tipos)")}{geral && <span className="ck">✓</span>}
                 </button>
                 {n.grupos.map((x, i) => (
                   <button key={x.id} role="option" aria-selected={i === g} className={i === g ? 'on' : ''} onClick={() => { setG(i); setTipoMenu(false); }}>
@@ -820,27 +821,27 @@ function PanoramaPronto() {
               </div>
             )}
           </div>
-          <button className="apill drop tog" role="switch" aria-checked={modo3d} title="Relevo 3D (os hospitais passam a aparecer como prédios)" onClick={() => setModo3d(!modo3d)}>
-            3D<span className={`sw swm ${modo3d ? 'on' : ''}`} aria-hidden />
+          <button className="apill drop tog" role="switch" aria-checked={modo3d} title={tx("Relevo 3D (os hospitais passam a aparecer como prédios)")} onClick={() => setModo3d(!modo3d)}>
+            {tx("3D")}<span className={`sw swm ${modo3d ? 'on' : ''}`} aria-hidden />
           </button>
           <button className="apill drop tog" role="switch" aria-checked={verHosp} onClick={() => setVerHosp(!verHosp)}>
-            Hospitais<span className={`sw swm ${verHosp ? 'on' : ''}`} aria-hidden />
+            {tx("Hospitais")}<span className={`sw swm ${verHosp ? 'on' : ''}`} aria-hidden />
           </button>
-          {escopo.tipo !== 'estado' && <span className="apill">{escopo.tipo === 'drs' ? `DRS ${n.drs.find((x) => x.id === escopo.id)?.nome}` : `Região ${rEsc?.nome}`}
-            <button aria-label="Limpar território" onClick={() => set({ escopo: { tipo: 'estado' } })}>×</button></span>}
-          {porte !== 'todos' && <span className="apill">{PORTES.find((x) => x[0] === porte)![1]}<button aria-label="Limpar porte" onClick={() => setPorte('todos')}>×</button></span>}
-          {nivel !== 'todas' && <span className="apill">Ocupação {NIVEIS.find((x) => x[0] === nivel)![1]}<button aria-label="Limpar nível" onClick={() => setNivel('todas')}>×</button></span>}
-          {verHosp && criticos && <span className="apill">Hospitais críticos<button aria-label="Limpar críticos" onClick={() => setCriticos(false)}>×</button></span>}
-          {verHosp && esfera !== 'todas' && <span className="apill">{esfera === 'MUNICIPAL' ? 'Hosp. municipais' : 'Hosp. estaduais'}<button aria-label="Limpar esfera" onClick={() => setEsfera('todas')}>×</button></span>}
+          {escopo.tipo !== 'estado' && <span className="apill">{escopo.tipo === 'drs' ? `DRS ${n.drs.find((x) => x.id === escopo.id)?.nome}` : tx("Região {0}", rEsc?.nome)}
+            <button aria-label={tx("Limpar território")} onClick={() => set({ escopo: { tipo: 'estado' } })}>×</button></span>}
+          {porte !== 'todos' && <span className="apill">{PORTES.find((x) => x[0] === porte)![1]}<button aria-label={tx("Limpar porte")} onClick={() => setPorte('todos')}>×</button></span>}
+          {nivel !== 'todas' && <span className="apill">{tx("Ocupação")} {NIVEIS.find((x) => x[0] === nivel)![1]}<button aria-label={tx("Limpar nível")} onClick={() => setNivel('todas')}>×</button></span>}
+          {verHosp && criticos && <span className="apill">{tx("Hospitais críticos")}<button aria-label={tx("Limpar críticos")} onClick={() => setCriticos(false)}>×</button></span>}
+          {verHosp && esfera !== 'todas' && <span className="apill">{esfera === 'MUNICIPAL' ? tx("Hosp. municipais") : tx("Hosp. estaduais")}<button aria-label={tx("Limpar esfera")} onClick={() => setEsfera('todas')}>×</button></span>}
           <span style={{ flex: 1 }} />
-          <button className="iconbtn float" aria-label="Alternar tema" onClick={() => set({ tema: tema === 'dark' ? 'light' : 'dark' })}>{tema === 'dark' ? I.sol : I.lua}</button>
+          <button className="iconbtn float" aria-label={tx("Alternar tema")} onClick={() => set({ tema: tema === 'dark' ? 'light' : 'dark' })}>{tema === 'dark' ? I.sol : I.lua}</button>
         </div>
         {filtros && (
-          <div className="filtros float" role="dialog" aria-label="Filtros do mapa">
-            <h4>Tipo de internação <em>leito SUS</em></h4>
+          <div className="filtros float" role="dialog" aria-label={tx("Filtros do mapa")}>
+            <h4>{tx("Tipo de internação")} <em>{tx("leito SUS")}</em></h4>
             <div className="fgrid">
               <button className={`chip ${geral ? 'on' : ''}`} onClick={() => setG(-1)}>
-                <i className="swatch" style={{ background: corTipo(-1), marginRight: 6 }} />Geral
+                <i className="swatch" style={{ background: corTipo(-1), marginRight: 6 }} />{tx("Geral")}
               </button>
               {n.grupos.map((x, i) => (
                 <button key={x.id} className={`chip ${i === g ? 'on' : ''}`} onClick={() => setG(i)}>
@@ -849,75 +850,75 @@ function PanoramaPronto() {
               ))}
             </div>
 
-            <h4>Faixa etária <em>em breve</em></h4>
-            <div className="fgrid">{FAIXAS.map((f) => <button key={f} className="chip" disabled title="Exige reprocessar o SIH por faixa etária">{f}</button>)}</div>
-            <div className="fnote">O gêmeo hoje modela o censo por região e tipo de leito. Para filtrar por idade, o pipeline precisa gerar essas séries por faixa.</div>
+            <h4>{tx("Faixa etária")} <em>{tx("em breve")}</em></h4>
+            <div className="fgrid">{FAIXAS.map((f) => <button key={f} className="chip" disabled title={tx("Exige reprocessar o SIH por faixa etária")}>{f}</button>)}</div>
+            <div className="fnote">{tx("O gêmeo hoje modela o censo por região e tipo de leito. Para filtrar por idade, o pipeline precisa gerar essas séries por faixa.")}</div>
 
-            <h4>Território <em>DRS</em></h4>
+            <h4>{tx("Território")} <em>{tx("DRS")}</em></h4>
             <div className="fgrid">
-              <button className={`chip ${escopo.tipo === 'estado' ? 'on' : ''}`} onClick={() => set({ escopo: { tipo: 'estado' } })}>Estado todo</button>
+              <button className={`chip ${escopo.tipo === 'estado' ? 'on' : ''}`} onClick={() => set({ escopo: { tipo: 'estado' } })}>{tx("Estado todo")}</button>
               {n.drs.map((x) => (
                 <button key={x.id} title={`DRS ${x.id}`} className={`chip ${escopo.tipo === 'drs' && escopo.id === x.id ? 'on' : ''}`}
                   onClick={() => set({ escopo: escopo.tipo === 'drs' && escopo.id === x.id ? { tipo: 'estado' } : { tipo: 'drs', id: x.id } })}>{x.nome}</button>
               ))}
             </div>
 
-            <h4>Nível de ocupação <em>na data da régua</em></h4>
+            <h4>{tx("Nível de ocupação")} <em>{tx("na data da régua")}</em></h4>
             <div className="fgrid">
               {NIVEIS.map(([v, t]) => <button key={v} className={`chip ${nivel === v ? 'on' : ''}`} disabled={v === 'risco' && obs}
-                title={v === 'risco' && obs ? 'Disponível ao escolher uma data de previsão' : undefined} onClick={() => setNivel(v)}>{t}</button>)}
+                title={v === 'risco' && obs ? tx("Disponível ao escolher uma data de previsão") : undefined} onClick={() => setNivel(v)}>{t}</button>)}
             </div>
 
-            <h4>Porte da região <em>leitos SUS do tipo escolhido</em></h4>
+            <h4>{tx("Porte da região")} <em>{tx("leitos SUS do tipo escolhido")}</em></h4>
             <div className="fgrid">{PORTES.map(([v, t]) => <button key={v} className={`chip ${porte === v ? 'on' : ''}`} onClick={() => setPorte(v)}>{t}</button>)}</div>
-            <div className="fnote">O porte também recorta os totais do painel; o nível de ocupação só filtra a lista e destaca o mapa.</div>
+            <div className="fnote">{tx("O porte também recorta os totais do painel; o nível de ocupação só filtra a lista e destaca o mapa.")}</div>
 
             {verHosp && (
               <>
-                <h4>Hospitais <em>média de 12 meses</em></h4>
-                <div className="frow"><span>Só críticos (ocupação ≥ 90%)</span><button className={`sw ${criticos ? 'on' : ''}`} role="switch" aria-checked={criticos} aria-label="Só hospitais críticos" onClick={() => setCriticos(!criticos)} /></div>
-                <h4>Estilo dos hospitais</h4>
+                <h4>{tx("Hospitais")} <em>{tx("média de 12 meses")}</em></h4>
+                <div className="frow"><span>{tx("Só críticos (ocupação ≥ 90%)")}</span><button className={`sw ${criticos ? 'on' : ''}`} role="switch" aria-checked={criticos} aria-label={tx("Só hospitais críticos")} onClick={() => setCriticos(!criticos)} /></div>
+                <h4>{tx("Estilo dos hospitais")}</h4>
                 <div className="fgrid">
-                  <button className={`chip ${estiloHosp === 'objetivo' ? 'on' : ''}`} onClick={() => setEstiloHosp('objetivo')}>Objetivo</button>
-                  <button className={`chip ${estiloHosp === 'ilustrativo' ? 'on' : ''}`} onClick={() => setEstiloHosp('ilustrativo')}>Ilustrativo (miniaturas)</button>
+                  <button className={`chip ${estiloHosp === 'objetivo' ? 'on' : ''}`} onClick={() => setEstiloHosp('objetivo')}>{tx("Objetivo")}</button>
+                  <button className={`chip ${estiloHosp === 'ilustrativo' ? 'on' : ''}`} onClick={() => setEstiloHosp('ilustrativo')}>{tx("Ilustrativo (miniaturas)")}</button>
                 </div>
-                <div className="fnote">Objetivo: círculos com área proporcional aos leitos, cor pela ocupação e anel vermelho acima de 90%, agrupados por zoom. Com o relevo 3D ligado, os hospitais aparecem como prédios.</div>
-                <h4>Esfera do hospital</h4>
+                <div className="fnote">{tx("Objetivo: círculos com área proporcional aos leitos, cor pela ocupação e anel vermelho acima de 90%, agrupados por zoom. Com o relevo 3D ligado, os hospitais aparecem como prédios.")}</div>
+                <h4>{tx("Esfera do hospital")}</h4>
                 <div className="fgrid">
-                  {([['todas', 'Todas'], ['MUNICIPAL', 'Municipal'], ['ESTADUAL', 'Estadual']] as const).map(([v, t]) =>
+                  {([['todas', tx("Todas")], ['MUNICIPAL', tx("Municipal")], ['ESTADUAL', tx("Estadual")]] as const).map(([v, t]) =>
                     <button key={v} className={`chip ${esfera === v ? 'on' : ''}`} onClick={() => setEsfera(v)}>{t}</button>)}
                 </div>
               </>
             )}
             <div className="ffoot">
-              <button className="btn" disabled={nFiltros === 0} onClick={() => { set({ escopo: { tipo: 'estado' } }); setNivel('todas'); setPorte('todos'); setEsfera('todas'); setCriticos(false); }}>Limpar filtros</button>
-              <button className="btn primary" onClick={() => setFiltros(false)}>Pronto</button>
+              <button className="btn" disabled={nFiltros === 0} onClick={() => { set({ escopo: { tipo: 'estado' } }); setNivel('todas'); setPorte('todos'); setEsfera('todas'); setCriticos(false); }}>{tx("Limpar filtros")}</button>
+              <button className="btn primary" onClick={() => setFiltros(false)}>{tx("Pronto")}</button>
             </div>
           </div>
         )}
       </div>
 
       {/* máquina do tempo */}
-      <section className={`pano-time float ${tempo ? '' : 'recolhida'}`} aria-label="Máquina do tempo">
+      <section className={`pano-time float ${tempo ? '' : 'recolhida'}`} aria-label={tx("Máquina do tempo")}>
         {rEsc && (
           <button className={`foco-btn foco-flut float ${focar ? 'on' : ''}`} onClick={() => setFocar(!focar)} aria-pressed={focar}
-            title={focar ? 'Voltar a mostrar o estado todo' : 'Mostrar só esta região, com zoom'}>
-            <span className="ico">{I.panorama}</span>{focar ? 'Sair do foco' : 'Enfocar região'}
+            title={focar ? tx("Voltar a mostrar o estado todo") : tx("Mostrar só esta região, com zoom")}>
+            <span className="ico">{I.panorama}</span>{focar ? tx("Sair do foco") : tx("Enfocar região")}
           </button>
         )}
         <div className="time-row">
-          <button className="iconbtn" style={{ width: 40, height: 40, borderRadius: 12 }} aria-label={tocando ? 'Pausar' : 'Reproduzir'} onClick={alternarPlay}>{tocando ? I.pause : I.play}</button>
+          <button className="iconbtn" style={{ width: 40, height: 40, borderRadius: 12 }} aria-label={tocando ? tx("Pausar") : tx("Reproduzir")} onClick={alternarPlay}>{tocando ? I.pause : I.play}</button>
           <div>
             <div className="time-date num">{dataBR(d)}</div>
-            <span className={`badge ${obs ? '' : 'prev'}`}>{obs ? (diffDias(d, sync) === 0 ? 'Último dado' : 'Observado') : 'Previsão'}</span>
+            <span className={`badge ${obs ? '' : 'prev'}`}>{obs ? (diffDias(d, sync) === 0 ? tx("Último dado") : tx("Observado")) : tx("Previsão")}</span>
           </div>
-          <button className="btn" onClick={() => setPasso((passo + 1) % PASSOS.length)} title="Velocidade da reprodução">{PASSOS[passo] / 7}×</button>
-          <button className="btn" onClick={() => irPara(sync)}>Último dado</button>
-          <button className="btn" onClick={() => irPara(hoje)}>Hoje</button>
+          <button className="btn" onClick={() => setPasso((passo + 1) % PASSOS.length)} title={tx("Velocidade da reprodução")}>{PASSOS[passo] / 7}×</button>
+          <button className="btn" onClick={() => irPara(sync)}>{tx("Último dado")}</button>
+          <button className="btn" onClick={() => irPara(hoje)}>{tx("Hoje")}</button>
           <div className="legend-inline">
             {foco != null && municipiosFoco ? (
               <>
-                <b style={{ color: 'var(--text-1)', fontWeight: 600 }}>Municípios · {INDM[indMun].nome}</b>
+                <b style={{ color: 'var(--text-1)', fontWeight: 600 }}>{tx("Municípios ·")} {INDM[indMun].nome}</b>
                 <div className="ramp" style={{ background: indMun === 0 ? gradienteOcupacao() : gradienteSeq() }} />
                 <div className="ticks">{indMun === 0
                   ? <><span>45%</span><span>65%</span><span>85%</span><span>100%</span><span>115%</span></>
@@ -925,15 +926,15 @@ function PanoramaPronto() {
               </>
             ) : (
               <>
-                <b style={{ color: 'var(--text-1)', fontWeight: 600 }}>Ocupação · {grupoAtual.nome}</b>
+                <b style={{ color: 'var(--text-1)', fontWeight: 600 }}>{tx("Ocupação ·")} {grupoAtual.nome}</b>
                 <div className="ramp" style={{ background: gradienteOcupacao() }} />
                 <div className="ticks"><span>45%</span><span>65%</span><span>85%</span><span>100%</span><span>115%</span></div>
               </>
             )}
-            {verHosp && estiloMapa === 'gestor' && <div className="lg-hosp"><i className="c" />hospital (área ∝ leitos) <i className="c al" />≥ 90% (média 12m)</div>}
+            {verHosp && estiloMapa === 'gestor' && <div className="lg-hosp"><i className="c" />{tx("hospital (área ∝ leitos)")} <i className="c al" />{tx("≥ 90% (média 12m)")}</div>}
           </div>
-          <button className={`ghost time-toggle ${tempo ? '' : 'fechada'}`} aria-label={tempo ? 'Recolher máquina do tempo' : 'Expandir máquina do tempo'}
-            title={tempo ? 'Recolher' : 'Expandir'} onClick={() => setTempo(!tempo)}>{I.seta}</button>
+          <button className={`ghost time-toggle ${tempo ? '' : 'fechada'}`} aria-label={tempo ? tx("Recolher máquina do tempo") : tx("Expandir máquina do tempo")}
+            title={tempo ? tx("Recolher") : tx("Expandir")} onClick={() => setTempo(!tempo)}>{I.seta}</button>
         </div>
         {tempo && <div className="ruler">
           <div className="prevzone" style={{ left: pctX(sync) }} />
@@ -943,8 +944,8 @@ function PanoramaPronto() {
             <path d={perfil.prev} fill="none" stroke="var(--text-1)" strokeWidth="1.5" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />
           </svg>
           {anos.map((a) => <span key={a} className="yr" style={{ left: pctX(parseData(`${a}-01-01`)) }}>{a}</span>)}
-          <div className="mk" style={{ left: pctX(sync) }}><span>último dado · previsão →</span></div>
-          <input type="range" min={0} max={total} value={Math.max(0, Math.min(total, diffDias(d, ini)))} aria-label="Data"
+          <div className="mk" style={{ left: pctX(sync) }}><span>{tx("último dado · previsão →")}</span></div>
+          <input type="range" min={0} max={total} value={Math.max(0, Math.min(total, diffDias(d, ini)))} aria-label={tx("Data")}
             onChange={(e) => irPara(addDias(ini, Number(e.target.value)))} />
         </div>}
       </section>

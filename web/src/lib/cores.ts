@@ -1,3 +1,4 @@
+import { tx } from '../i18n';
 /** Escalas de cor (paleta de referência validada; ver skill dataviz). */
 export const lerVar = (v: string) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 
@@ -50,4 +51,4 @@ export function corDiv(t: number) {
 
 export type Nivel = 'good' | 'warning' | 'serious' | 'critical';
 export const nivelOcupacao = (x: number): Nivel => (x >= 1 ? 'critical' : x >= 0.92 ? 'serious' : x >= 0.85 ? 'warning' : 'good');
-export const rotuloNivel: Record<Nivel, string> = { good: 'Adequada', warning: 'Atenção', serious: 'Alta', critical: 'Crítica' };
+export const rotuloNivel: Record<Nivel, string> = { good: tx("Adequada"), warning: tx("Atenção"), serious: tx("Alta"), critical: tx("Crítica") };

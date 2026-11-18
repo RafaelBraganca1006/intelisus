@@ -1,3 +1,4 @@
+import { tx } from '../i18n';
 /** Definição de cenários (alavancas do gestor) e presets. */
 export type Regulacao = 'nenhuma' | 'drs' | 'estado';
 
@@ -19,7 +20,7 @@ export interface Cenario {
 }
 
 export const cenarioBase = (grupo: number, ano: number): Cenario => ({
-  nome: 'Base', grupo, dias: 120, execucoes: 150, demandaPct: 0,
+  nome: tx("Base"), grupo, dias: 120, execucoes: 150, demandaPct: 0,
   resp: { intensidade: 0, picoDia: 60, larguraSem: 4, drs: null }, anoDemografia: ano,
   permanenciaPct: 0, icsapPct: 0, leitos: { escopo: 'estado', id: null, delta: 0, modo: 'pct' },
   regulacao: 'nenhuma', gatilho: 0.95, alvo: 0.85, raioKm: 250,
@@ -29,23 +30,23 @@ export interface Preset { id: string; nome: string; descricao: string; aplicar: 
 
 export const PRESETS: Preset[] = [
   {
-    id: 'inverno', nome: 'Inverno severo', descricao: 'Onda de influenza/VSR: +80% nas internações respiratórias no pico, 5 semanas de largura.',
-    aplicar: (c) => ({ ...c, nome: 'Inverno severo', resp: { ...c.resp, intensidade: 80, larguraSem: 5 } }),
+    id: 'inverno', nome: tx("Inverno severo"), descricao: tx("Onda de influenza/VSR: +80% nas internações respiratórias no pico, 5 semanas de largura."),
+    aplicar: (c) => ({ ...c, nome: tx("Inverno severo"), resp: { ...c.resp, intensidade: 80, larguraSem: 5 } }),
   },
   {
-    id: 'pandemia', nome: 'Epidemia respiratória grave', descricao: 'Choque tipo COVID-19: +250% nas respiratórias, 8 semanas. Depois, ligue a regulação estadual e compare.',
-    aplicar: (c) => ({ ...c, nome: 'Epidemia grave', resp: { ...c.resp, intensidade: 250, larguraSem: 8 } }),
+    id: 'pandemia', nome: tx("Epidemia respiratória grave"), descricao: tx("Choque tipo COVID-19: +250% nas respiratórias, 8 semanas. Depois, ligue a regulação estadual e compare."),
+    aplicar: (c) => ({ ...c, nome: tx("Epidemia grave"), resp: { ...c.resp, intensidade: 250, larguraSem: 8 } }),
   },
   {
-    id: 'envelhecimento', nome: 'Envelhecimento 2035', descricao: 'Taxas de internação atuais por idade aplicadas à população projetada de 2035 (IBGE 2024).',
-    aplicar: (c) => ({ ...c, nome: 'Envelhecimento 2035', anoDemografia: 2035 }),
+    id: 'envelhecimento', nome: tx("Envelhecimento 2035"), descricao: tx("Taxas de internação atuais por idade aplicadas à população projetada de 2035 (IBGE 2024)."),
+    aplicar: (c) => ({ ...c, nome: tx("Envelhecimento 2035"), anoDemografia: 2035 }),
   },
   {
-    id: 'aps', nome: 'APS resolutiva + desospitalização', descricao: '−20% ICSAP (APS no nível de referência) e −5% de permanência (gestão de altas, atenção domiciliar).',
-    aplicar: (c) => ({ ...c, nome: 'APS + desospitalização', icsapPct: 20, permanenciaPct: 5 }),
+    id: 'aps', nome: tx("APS resolutiva + desospitalização"), descricao: tx("−20% ICSAP (APS no nível de referência) e −5% de permanência (gestão de altas, atenção domiciliar)."),
+    aplicar: (c) => ({ ...c, nome: tx("APS + desospitalização"), icsapPct: 20, permanenciaPct: 5 }),
   },
   {
-    id: 'regulacao', nome: 'Regulação regional', descricao: 'Transferência automática quando a região passa de 95%, para a mais próxima abaixo de 85% no mesmo DRS.',
-    aplicar: (c) => ({ ...c, nome: 'Regulação no DRS', regulacao: 'drs' }),
+    id: 'regulacao', nome: tx("Regulação regional"), descricao: tx("Transferência automática quando a região passa de 95%, para a mais próxima abaixo de 85% no mesmo DRS."),
+    aplicar: (c) => ({ ...c, nome: tx("Regulação no DRS"), regulacao: 'drs' }),
   },
 ];

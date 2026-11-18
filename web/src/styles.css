@@ -87,6 +87,18 @@ a { color: var(--accent); }
 .shell.mini .brand-txt small, .shell.mini .nav-item span, .shell.mini .nav-sec, .shell.mini .rail-foot { display: none; }
 .shell.mini .nav-item { justify-content: center; padding: 10px 0; }
 .shell.mini .rail { padding: 18px 8px; }
+.logo { display: inline-flex; flex-direction: column; align-items: flex-start; font-family: 'Baloo 2', 'Nunito', ui-rounded, system-ui, sans-serif; font-weight: 800; line-height: 1; font-size: 25px; }
+.logo-w { color: var(--text-1); letter-spacing: 0.02em; margin-bottom: 0.1em; }
+.logo-r { display: flex; gap: 0.15em; }
+.logo-r i { font-style: normal; width: 1.3em; height: 1.3em; border-radius: 0.275em; display: grid; place-items: center; padding-bottom: 0.042em; }
+.logo .t1 { background: #009b3a; color: #fff; }
+.logo .t2 { background: #ffcb05; color: #071d41; }
+.logo .t3 { background: #fff; color: #1351b4; }
+:root[data-theme='light'] .logo .t3 { background: #1351b4; color: #fff; }
+.logo.mini { font-size: 12px; }
+.rail-lang { margin-top: auto; align-self: flex-start; margin-left: 8px; }
+.rail-lang + .rail-foot { margin-top: 0; }
+.shell.mini .rail-lang { margin-left: 0; align-self: center; }
 .brand h1 { font-family: 'Playfair Display', Georgia, 'Times New Roman', serif; font-weight: 500; font-size: 25px; margin: 0; letter-spacing: -0.015em; line-height: 1.1; }
 .shell.mini .brand h1 { font-size: 22px; }
 .brand small { display: block; margin-top: 4px; color: var(--text-3); font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; }

@@ -1,3 +1,4 @@
+import { tx } from './i18n';
 import { create } from 'zustand';
 import type { Fluxos, Historico, Hospital, Municipio, Nucleo, Placar, Validacao } from './data/tipos';
 import type { Cenario } from './engine/cenario';
@@ -61,7 +62,7 @@ export function unidades(n: Nucleo, e: Escopo, g: number) {
       ? (g < 0 ? n.grupos.map((_, gg) => i * G + gg) : [i * G + g]) : []);
 }
 export function nomeEscopo(n: Nucleo, e: Escopo) {
-  if (e.tipo === 'estado') return 'Estado de São Paulo';
-  if (e.tipo === 'drs') return `DRS ${e.id} · ${n.drs.find((d) => d.id === e.id)?.nome}`;
-  return `Região ${n.regioes.find((r) => r.id === e.id)?.nome}`;
+  if (e.tipo === 'estado') return tx("Estado de São Paulo");
+  if (e.tipo === 'drs') return tx("DRS {0} · {1}", e.id, n.drs.find((d) => d.id === e.id)?.nome);
+  return tx("Região {0}", n.regioes.find((r) => r.id === e.id)?.nome);
 }

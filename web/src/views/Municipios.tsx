@@ -1,3 +1,4 @@
+import { tx } from '../i18n';
 import type { EChartsOption } from 'echarts';
 import { useMemo, useState } from 'react';
 import { Grafico } from '../components/Grafico';
@@ -9,11 +10,11 @@ import { base } from '../lib/tema-graf';
 import { useStore } from '../store';
 
 const INDIC: { id: keyof Municipio; nome: string; fmt: (v: number) => string; desc: string }[] = [
-  { id: 'taxa_pad', nome: 'Internações /1.000 (padronizada)', fmt: (v) => n1(v), desc: 'Taxa de internação dos residentes padronizada pela estrutura etária do estado.' },
-  { id: 'taxa_icsap_pad', nome: 'ICSAP /1.000 (padronizada)', fmt: (v) => n1(v), desc: 'Internações sensíveis à atenção primária (Portaria 221/2008), padronizadas por idade.' },
-  { id: 'fora_mun', nome: '% internado fora do município', fmt: (v) => pct(v), desc: 'Dependência da rede de outros municípios.' },
-  { id: 'fora_reg', nome: '% internado fora da região', fmt: (v) => pct(v), desc: 'Evasão para fora da região de saúde.' },
-  { id: 'perm', nome: 'Permanência média (dias)', fmt: (v) => n1(v), desc: 'Dias de internação por AIH dos residentes.' },
+  { id: 'taxa_pad', nome: tx("Internações /1.000 (padronizada)"), fmt: (v) => n1(v), desc: tx("Taxa de internação dos residentes padronizada pela estrutura etária do estado.") },
+  { id: 'taxa_icsap_pad', nome: tx("ICSAP /1.000 (padronizada)"), fmt: (v) => n1(v), desc: tx("Internações sensíveis à atenção primária (Portaria 221/2008), padronizadas por idade.") },
+  { id: 'fora_mun', nome: tx("% internado fora do município"), fmt: (v) => pct(v), desc: tx("Dependência da rede de outros municípios.") },
+  { id: 'fora_reg', nome: tx("% internado fora da região"), fmt: (v) => pct(v), desc: tx("Evasão para fora da região de saúde.") },
+  { id: 'perm', nome: tx("Permanência média (dias)"), fmt: (v) => n1(v), desc: tx("Dias de internação por AIH dos residentes.") },
 ];
 
 export function Municipios() {
@@ -54,32 +55,32 @@ export function Municipios() {
           <Mapa camada="municipios" cores={cores} altura={600} selecionado={sel} onClick={(t, id) => t === 'area' && setSel(id === sel ? null : id)}
             tooltip={(_, id) => { const x = lista.find((y) => y.mun === id); return x && <><b>{x.nome}</b><div className="muted">{n!.regioes.find((r) => r.id === x.regiao)?.nome}</div>
               <div className="row"><span>{I.nome}</span><span>{x[I.id] != null ? I.fmt(x[I.id] as number) : '—'}</span></div>
-              <div className="row"><span>População</span><span>{n0(x.pop)}</span></div></>; }}>
+              <div className="row"><span>{tx("População")}</span><span>{n0(x.pop)}</span></div></>; }}>
             <div className="map-overlay" style={{ left: 12, bottom: 12 }}><LegendaRampa titulo={I.nome} gradiente={gradienteSeq()} ticks={[I.fmt(lo), I.fmt((lo + hi) / 2), I.fmt(hi)]} /></div>
           </Mapa>
         </div>
         <div className="grid" style={{ alignContent: 'start' }}>
           {m ? <div className="card fade-in">
-            <div className="card-head"><div><h3>{m.nome}</h3><p className="hint">{n!.regioes.find((r) => r.id === m.regiao)?.nome} · {n0(m.pop)} hab. · {n0(m.pop60)} com 60+</p></div>
-              <button className="iconbtn" onClick={() => setSel(null)} aria-label="Fechar">✕</button></div>
+            <div className="card-head"><div><h3>{m.nome}</h3><p className="hint">{n!.regioes.find((r) => r.id === m.regiao)?.nome} · {n0(m.pop)} {tx("hab. ·")} {n0(m.pop60)} {tx("com 60+")}</p></div>
+              <button className="iconbtn" onClick={() => setSel(null)} aria-label={tx("Fechar")}>✕</button></div>
             <table className="tbl"><tbody>
-              <tr><td>Internações/ano (residentes)</td><td className="r num">{n0(m.n)}</td></tr>
-              <tr><td>Taxa bruta /1.000</td><td className="r num">{n1(m.taxa_bruta)}</td></tr>
-              <tr><td>Taxa padronizada /1.000</td><td className="r num">{n1(m.taxa_pad)}</td></tr>
-              <tr><td>ICSAP (% das internações)</td><td className="r num">{pct((m.icsap ?? 0) / (m.n || 1))}</td></tr>
-              <tr><td>Idosos (% das internações)</td><td className="r num">{pct((m.idosos ?? 0) / (m.n || 1))}</td></tr>
-              <tr><td>Com UTI</td><td className="r num">{pct((m.uti ?? 0) / (m.n || 1))}</td></tr>
-              <tr><td>Óbitos hospitalares</td><td className="r num">{n0(m.obitos)} ({pct((m.obitos ?? 0) / (m.n || 1), 1)})</td></tr>
-              <tr><td>Faturamento SUS/ano</td><td className="r num">{m.valor ? reais(m.valor) : '—'}</td></tr>
-              <tr><td>Internados fora do município</td><td className="r num">{pct(m.fora_mun)}</td></tr>
+              <tr><td>{tx("Internações/ano (residentes)")}</td><td className="r num">{n0(m.n)}</td></tr>
+              <tr><td>{tx("Taxa bruta /1.000")}</td><td className="r num">{n1(m.taxa_bruta)}</td></tr>
+              <tr><td>{tx("Taxa padronizada /1.000")}</td><td className="r num">{n1(m.taxa_pad)}</td></tr>
+              <tr><td>{tx("ICSAP (% das internações)")}</td><td className="r num">{pct((m.icsap ?? 0) / (m.n || 1))}</td></tr>
+              <tr><td>{tx("Idosos (% das internações)")}</td><td className="r num">{pct((m.idosos ?? 0) / (m.n || 1))}</td></tr>
+              <tr><td>{tx("Com UTI")}</td><td className="r num">{pct((m.uti ?? 0) / (m.n || 1))}</td></tr>
+              <tr><td>{tx("Óbitos hospitalares")}</td><td className="r num">{n0(m.obitos)} ({pct((m.obitos ?? 0) / (m.n || 1), 1)})</td></tr>
+              <tr><td>{tx("Faturamento SUS/ano")}</td><td className="r num">{m.valor ? reais(m.valor) : '—'}</td></tr>
+              <tr><td>{tx("Internados fora do município")}</td><td className="r num">{pct(m.fora_mun)}</td></tr>
             </tbody></table>
-            {m.destinos.length > 0 && <><div className="nav-sec" style={{ padding: '10px 0 4px' }}>Principais destinos</div>
+            {m.destinos.length > 0 && <><div className="nav-sec" style={{ padding: '10px 0 4px' }}>{tx("Principais destinos")}</div>
               {m.destinos.map(([d, v]) => <div key={d} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, padding: '2px 0' }}><span>{nomeMun(d)}</span><span className="num">{n0(v)}</span></div>)}</>}
-            <div className="nav-sec" style={{ padding: '10px 0 4px' }}>Internações mensais, 3 anos</div>
+            <div className="nav-sec" style={{ padding: '10px 0 4px' }}>{tx("Internações mensais, 3 anos")}</div>
             {op && <Grafico opcao={op} altura={150} />}
-          </div> : <div className="callout">{I.desc} Clique num município para ver a ficha.</div>}
+          </div> : <div className="callout">{I.desc} {tx("Clique num município para ver a ficha.")}</div>}
           <div className="card" style={{ maxHeight: m ? 300 : 520, display: 'flex', flexDirection: 'column' }}>
-            <div className="card-head"><div><h3>Ranking</h3></div><input type="search" placeholder="Buscar…" value={busca} onChange={(e) => setBusca(e.target.value)} /></div>
+            <div className="card-head"><div><h3>{tx("Ranking")}</h3></div><input type="search" placeholder={tx("Buscar…")} value={busca} onChange={(e) => setBusca(e.target.value)} /></div>
             <div className="scroll" style={{ flex: 1, margin: '0 -8px' }}>
               <table className="tbl"><tbody>{ranking.map((x, i) => (
                 <tr key={x.mun} className={x.mun === sel ? 'sel' : ''} onClick={() => setSel(x.mun)}>

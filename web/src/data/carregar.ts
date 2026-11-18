@@ -1,3 +1,4 @@
+import { tx } from '../i18n';
 import { useStore } from '../store';
 import type { Nucleo } from './tipos';
 
@@ -29,6 +30,7 @@ export async function carregarTudo() {
   const [nucleo, regioes, drs, municipiosGeo] = await Promise.all([
     get('nucleo.json') as Promise<Nucleo>, get('regioes.geojson'), get('drs.geojson'), get('municipios.geojson'),
   ]);
+  nucleo.grupos.forEach((g) => { g.nome = tx(g.nome); }); // nomes vêm do JSON, em português
   motor().postMessage({ tipo: 'init', nucleo });
   set({ nucleo, geo: { regioes, drs, municipios: municipiosGeo }, dataRef: nucleo.meta.data_sync });
   pedir<{ media: Float32Array; varInd: Float32Array; sdNivel: Float32Array }>({ tipo: 'prever' })

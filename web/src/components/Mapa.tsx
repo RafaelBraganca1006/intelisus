@@ -1,3 +1,4 @@
+import { tx } from '../i18n';
 import maplibregl, { type MapGeoJSONFeature } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
@@ -226,7 +227,7 @@ export function Mapa(p: Props) {
       const fill = corOcupacao(ratio), lg = Math.log2(Math.max(n, 2));
       const fontPx = 13 + Math.min(4, lg), alt = 28 + Math.min(12, lg * 2.6);
       const medidor = document.createElement('canvas').getContext('2d')!;
-      medidor.font = `650 ${fontPx}px "Geist Variable", system-ui, sans-serif`;
+      medidor.font = tx("650 {0}px \"Geist Variable\", system-ui, sans-serif", fontPx);
       const dot = alt * 0.26, txt = Math.ceil(medidor.measureText(String(n)).width);
       const larg = Math.ceil(10 + dot * 2 + 7 + txt + 12), mg = 9;
       const c = document.createElement('canvas'); c.width = Math.ceil(larg + mg * 2); c.height = Math.ceil(alt + mg * 2);
